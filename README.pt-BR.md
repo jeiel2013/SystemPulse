@@ -7,8 +7,8 @@
 Saiba o que seu computador está fazendo sem sair do terminal.
 
 > **Estado do desenvolvimento:** a visão Textual em tempo real, o explorador
-> interativo de processos e os comandos pontuais funcionam a partir de uma cópia
-> do código. Não há versão publicada no PyPI.
+> interativo de processos, a visão System e os comandos atuais funcionam a partir
+> de uma cópia do código. Não há versão publicada no PyPI.
 
 O SystemPulse foi concebido como uma aplicação local e inicialmente somente de
 leitura. Seus três princípios são **Measure. Understand. Inform.** Observações e
@@ -29,13 +29,18 @@ Disponíveis agora:
 - A visão Processes oferece busca em tempo real, ordenação por CPU, memória ou
   PID, seleção por teclado e detalhes verificados do processo selecionado.
   Campos bloqueados pelo sistema operacional são marcados como indisponíveis.
+- A visão System mostra informações observadas do host, hardware de CPU e
+  memória, incluindo uptime quando o horário de inicialização está disponível.
 - `systempulse version` informa a versão do pacote instalado.
-- `systempulse status` mostra CPU, memória e processos de maior consumo.
+- `systempulse status` mostra CPU, memória, uptime e processos de maior consumo.
 - `systempulse processes` lista processos com ordenação por CPU ou memória, busca
   pelo nome e limite de linhas. Campos indisponíveis aparecem identificados.
+- `systempulse doctor` verifica o Python, a plataforma alvo, os collectors
+  incluídos e as capacidades do terminal. Falha de collector essencial retorna
+  código diferente de zero; ausência de terminal interativo gera aviso.
 
-A meta restante para v0.1 inclui informações do sistema e os comandos `top` e
-`doctor`. Essas funcionalidades ainda estão planejadas.
+A meta restante para v0.1 inclui o comando `top` e validação mais ampla entre
+plataformas. Essas etapas ainda estão planejadas.
 
 ## Instalação
 
@@ -59,11 +64,12 @@ uv run systempulse version
 uv run systempulse status
 uv run systempulse processes --sort memory --limit 10
 uv run systempulse processes --search python
+uv run systempulse doctor
 ```
 
-O primeiro comando requer um terminal interativo. `status` e `processes` coletam
-duas amostras com intervalo de cerca de um segundo para calcular as taxas de CPU;
-mostram o resultado e encerram.
+O primeiro comando requer um terminal interativo. `status`, `processes` e
+`doctor` coletam duas amostras com intervalo de cerca de um segundo para calcular
+as taxas de CPU; mostram o resultado e encerram.
 
 ## Atalhos de teclado
 
@@ -73,6 +79,7 @@ mostram o resultado e encerram.
 | `r` | Solicitar uma atualização completa |
 | `1` | Abrir Overview |
 | `2` | Abrir Processes |
+| `3` | Abrir System |
 | `/` | Focar a busca de processos em Processes |
 | `c`, `m`, `p` | Ordenar processos por CPU, memória ou PID |
 | `Enter` | Abrir os detalhes do processo selecionado |
@@ -94,8 +101,9 @@ O fluxo local atual é: collectors tipados → serviço de amostragem → agrega
 métricas → estado da aplicação → interface Textual e CLI. Os collectors executam
 fora do loop de eventos da TUI e possuem intervalos de coleta independentes. Um
 barramento interno para futuro histórico, regras e alertas ainda está planejado.
-Widgets não consultam o `psutil` diretamente. Os detalhes de um processo são
-lidos sob demanda após verificar sua identidade pelo PID e horário de criação.
+Widgets não consultam o `psutil` diretamente. Informações do host são coletadas
+uma vez por minuto. Os detalhes de um processo são lidos sob demanda após
+verificar sua identidade pelo PID e horário de criação.
 
 A [metodologia de benchmark da varredura de processos](docs/pt-BR/benchmarking.md)
 registra como o custo do collector é medido durante o desenvolvimento.

@@ -7,8 +7,8 @@
 Know what your computer is doing, without leaving your terminal.
 
 > **Development status:** The live Textual overview, interactive process
-> explorer, and one-shot CLI commands work from a source checkout. No release
-> of this project has been published to PyPI.
+> explorer, System view, and current CLI commands work from a source checkout.
+> No release of this project has been published to PyPI.
 
 SystemPulse is designed as a local, read-only terminal application. Its three guiding
 principles are **Measure. Understand. Inform.** Future observations and diagnostics
@@ -29,13 +29,19 @@ Currently available:
 - The Processes view provides live search, CPU/memory/PID sorting, keyboard
   selection, and verified details for a selected process. Fields blocked by
   the operating system are marked unavailable.
+- The System view shows observed host, CPU hardware, and memory information,
+  including uptime when boot time is available.
 - `systempulse version` reports the installed package version.
-- `systempulse status` shows current CPU, memory, and leading processes.
+- `systempulse status` shows current CPU, memory, system uptime, and leading
+  processes.
 - `systempulse processes` lists processes with CPU and memory sorting, name search,
   and a row limit. Unavailable process fields are labeled explicitly.
+- `systempulse doctor` checks the Python runtime, target platform, shipped
+  collectors, and terminal capabilities. A failed required collector gives a
+  nonzero exit status; a noninteractive terminal produces a warning.
 
-The remaining v0.1 target includes system information and `top` and `doctor`
-commands. These remain planned.
+The remaining v0.1 target includes the `top` command and broader platform
+validation. These remain planned.
 
 ## Installation
 
@@ -59,11 +65,12 @@ uv run systempulse version
 uv run systempulse status
 uv run systempulse processes --sort memory --limit 10
 uv run systempulse processes --search python
+uv run systempulse doctor
 ```
 
-The first command requires an interactive terminal. `status` and `processes` take
-two samples about one second apart to calculate CPU rates; they return a one-shot
-view and then exit.
+The first command requires an interactive terminal. `status`, `processes`, and
+`doctor` take two samples about one second apart to calculate CPU rates; they
+return a one-shot result and then exit.
 
 ## Keyboard shortcuts
 
@@ -73,6 +80,7 @@ view and then exit.
 | `r` | Request a full refresh |
 | `1` | Open Overview |
 | `2` | Open Processes |
+| `3` | Open System |
 | `/` | Focus process search in Processes |
 | `c`, `m`, `p` | Sort processes by CPU, memory, or PID |
 | `Enter` | Open selected process details |
@@ -94,8 +102,9 @@ The current local pipeline is: typed collectors → sampling service → metric
 aggregator → application state → Textual interface and CLI. Collectors run outside
 the TUI event loop and have independent sampling intervals. An internal event bus
 for later history, rules, and alerts is planned. Widgets do not call `psutil`
-directly. Detailed process facts are read on demand after checking the process
-identity with both PID and creation time.
+directly. Host facts are collected once per minute. Detailed process facts are
+read on demand after checking the process identity with both PID and creation
+time.
 
 The [process scan benchmark methodology](docs/en/benchmarking.md) records how
 collector cost is measured during development.
