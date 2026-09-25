@@ -13,6 +13,7 @@ from rich.text import Text
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.presentation import format_bytes, format_percent, format_uptime
+from systempulse.services.doctor import CheckState, run_doctor
 from systempulse.services.monitor import create_default_session
 from systempulse.services.process_query import (
     ProcessQuery,
@@ -172,6 +173,33 @@ def processes(
         console.print("No matching processes.")
     if process_snapshot.skipped_count:
         console.print(f"{process_snapshot.skipped_count} processes could not be read.")
+
+
+@app.command()
+def doctor() -> None:
+    """Check the runtime, shipped collectors, and terminal capabilities."""
+    report = run_doctor(
+        interactive_terminal=sys.stdin.isatty() and sys.stdout.isatty(),
+        color_system=console.color_system,
+    )
+    table = Table(title=f"SystemPulse doctor ({report.version})", box=box.SIMPLE)
+    table.add_column("Result")
+    table.add_column("Check")
+    table.add_column("Detail", overflow="fold")
+    styles = {
+        CheckState.PASS: "green",
+        CheckState.WARN: "yellow",
+        CheckState.FAIL: "red",
+    }
+    for check in report.checks:
+        table.add_row(
+            Text(check.state.value.upper(), style=styles[check.state]),
+            check.name,
+            check.detail,
+        )
+    console.print(table)
+    if report.exit_code:
+        raise typer.Exit(code=report.exit_code)
 
 
 def main() -> None:
