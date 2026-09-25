@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 
-from systempulse.presentation import format_uptime
+from systempulse.presentation import format_temperature, format_uptime
 
 
 def test_uptime_formats_days_and_hours() -> None:
@@ -21,3 +21,8 @@ def test_uptime_does_not_guess_missing_or_future_boot_time() -> None:
 
     assert format_uptime(None, observed) == "Unavailable"
     assert format_uptime(observed + timedelta(seconds=1), observed) == "Unavailable"
+
+
+def test_temperature_marks_missing_sensor() -> None:
+    assert format_temperature(51.2) == "51°C"
+    assert format_temperature(None) == "Unavailable"

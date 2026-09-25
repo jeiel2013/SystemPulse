@@ -9,6 +9,7 @@ from rich.console import Console
 from textual.widgets import DataTable, Input, Static
 
 from systempulse.domain.availability import Availability, CollectorStatus
+from systempulse.domain.gpu import GpuMetrics, GpuSnapshot
 from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import (
     ProcessDetails,
@@ -217,6 +218,49 @@ async def test_system_view_shows_host_facts_and_survives_resize() -> None:
         await pilot.press("2")
         assert not app.has_class("show-system")
         assert app.has_class("show-processes")
+
+
+@pytest.mark.asyncio
+async def test_overview_and_system_view_show_observed_gpu_values() -> None:
+    snapshot = _snapshot()
+    at = snapshot.created_at
+    gpu = GpuMetrics(at, 0, "Test GPU", 38.0, 6 * 1024**3, 2 * 1024**3, 51.0, "test")
+    snapshot = replace(snapshot, gpu=GpuSnapshot(at, (gpu,)))
+    app = PulseApp(session=FakeSession(snapshot))
+
+    async with app.run_test(size=(90, 28)) as pilot:
+        await pilot.pause()
+        card = str(app.query_one("#gpu-card", Static).render())
+        assert "38.0%" in card
+        assert "2.0 GiB" in card
+        assert "51°C" in card
+
+        await pilot.press("3")
+        output = StringIO()
+        Console(file=output, width=80, force_terminal=False).print(
+            app.query_one("#gpu-facts", Static).content
+        )
+        assert "Test GPU" in output.getvalue()
+        assert "2.0 GiB / 6.0 GiB" in output.getvalue()
+
+
+@pytest.mark.asyncio
+async def test_gpu_unavailable_is_explicit_in_both_views() -> None:
+    snapshot = _snapshot()
+    snapshot = replace(
+        snapshot,
+        collector_statuses=(
+            *snapshot.collector_statuses,
+            CollectorStatus("gpu", Availability.UNAVAILABLE, snapshot.created_at),
+        ),
+    )
+    app = PulseApp(session=FakeSession(snapshot))
+
+    async with app.run_test(size=(80, 24)) as pilot:
+        await pilot.pause()
+        assert "Unavailable" in str(app.query_one("#gpu-card", Static).render())
+        await pilot.press("3")
+        assert "nvidia-smi" in str(app.query_one("#gpu-facts", Static).render())
 
 
 @pytest.mark.asyncio

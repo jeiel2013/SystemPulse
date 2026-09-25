@@ -15,7 +15,12 @@ from textual.widgets import DataTable, Footer, Header, Static
 
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
-from systempulse.presentation import format_bytes, format_percent, format_uptime
+from systempulse.presentation import (
+    format_bytes,
+    format_percent,
+    format_temperature,
+    format_uptime,
+)
 from systempulse.services.monitor import MonitorSession, create_default_session
 from systempulse.services.process_details import ProcessDetailsService
 from systempulse.services.process_query import (
@@ -77,6 +82,9 @@ class PulseApp(App[None]):
                     id="memory-card",
                     classes="metric-card",
                 )
+                yield Static(
+                    "GPU\nChecking provider", id="gpu-card", classes="metric-card"
+                )
             yield Static("CPU ACTIVITY\nWaiting for samples", id="cpu-history")
             yield Static("TOP CPU PROCESSES", id="process-heading")
             yield DataTable(id="top-processes", cursor_type="none", zebra_stripes=True)
@@ -90,6 +98,7 @@ class PulseApp(App[None]):
             yield Static("SYSTEM  ·  LOCAL HOST", id="system-heading")
             yield Static("Waiting for system facts", id="host-facts")
             yield Static("Waiting for hardware metrics", id="hardware-facts")
+            yield Static("Checking GPU provider", id="gpu-facts")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -161,6 +170,25 @@ class PulseApp(App[None]):
             f"MEMORY\n{format_percent(memory.percent if memory else None)}"
             + (f"\n{format_bytes(memory.available_bytes)} available" if memory else "")
         )
+        gpu = snapshot.gpu.devices[0] if snapshot.gpu is not None else None
+        if gpu is None:
+            status = next(
+                (item for item in snapshot.collector_statuses if item.name == "gpu"),
+                None,
+            )
+            label = (
+                status.availability.value.replace("_", " ").title()
+                if status is not None
+                else "Checking provider"
+            )
+            self.query_one("#gpu-card", Static).update(f"GPU\n{label}")
+        else:
+            self.query_one("#gpu-card", Static).update(
+                f"GPU {gpu.index}\n"
+                f"{format_percent(gpu.utilization_percent)} load\n"
+                f"VRAM {format_bytes(gpu.vram_used_bytes)} used\n"
+                f"Temp {format_temperature(gpu.temperature_celsius)}"
+            )
         history = tuple(
             sample.metrics.cpu.total_percent if sample.metrics.cpu else None
             for sample in self.session.state.recent_snapshots
@@ -269,3 +297,37 @@ class PulseApp(App[None]):
             format_bytes(memory.swap_total_bytes if memory else None),
         )
         self.query_one("#hardware-facts", Static).update(hardware)
+        self._render_gpu(snapshot)
+
+    def _render_gpu(self, snapshot: SystemSnapshot) -> None:
+        """Show each measured GPU or the actual provider state."""
+        if snapshot.gpu is None:
+            status = next(
+                (item for item in snapshot.collector_statuses if item.name == "gpu"),
+                None,
+            )
+            if status is None:
+                message = "Waiting for GPU provider"
+            elif status.availability == Availability.UNAVAILABLE:
+                message = "GPU metrics unavailable. NVIDIA nvidia-smi is supported."
+            else:
+                message = f"GPU metrics {status.availability.value}"
+                if status.reason:
+                    message += f" ({status.reason})"
+            self.query_one("#gpu-facts", Static).update(message)
+            return
+
+        table = Table.grid(padding=(0, 2))
+        table.add_column(style="bold")
+        table.add_column(overflow="fold")
+        for gpu in snapshot.gpu.devices:
+            table.add_row(f"GPU {gpu.index}", gpu.name)
+            table.add_row("Load", format_percent(gpu.utilization_percent))
+            table.add_row(
+                "VRAM",
+                f"{format_bytes(gpu.vram_used_bytes)} / "
+                f"{format_bytes(gpu.vram_total_bytes)}",
+            )
+            table.add_row("Temperature", format_temperature(gpu.temperature_celsius))
+            table.add_row("Source", gpu.source)
+        self.query_one("#gpu-facts", Static).update(table)

@@ -20,6 +20,11 @@ def format_percent(value: float | None) -> str:
     return "Unavailable" if value is None else f"{value:.1f}%"
 
 
+def format_temperature(value: float | None) -> str:
+    """Show observed temperatures without manufacturing missing readings."""
+    return "Unavailable" if value is None else f"{value:.0f}°C"
+
+
 def format_uptime(boot_time: datetime | None, observed_at: datetime) -> str:
     """Express elapsed host time without guessing when boot time is unavailable."""
     if boot_time is None:
