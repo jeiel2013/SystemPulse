@@ -2,7 +2,6 @@
 
 import asyncio
 import sys
-from enum import StrEnum
 from typing import Annotated
 
 import typer
@@ -12,10 +11,14 @@ from rich.table import Table
 from rich.text import Text
 
 from systempulse.domain.availability import Availability
-from systempulse.domain.processes import ProcessMetrics
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.presentation import format_bytes, format_percent
 from systempulse.services.monitor import create_default_session
+from systempulse.services.process_query import (
+    ProcessQuery,
+    ProcessSort,
+    query_processes,
+)
 from systempulse.version import get_version
 
 app = typer.Typer(
@@ -25,41 +28,9 @@ app = typer.Typer(
 console = Console()
 
 
-class ProcessSort(StrEnum):
-    """Supported sort keys for the one-shot process listing."""
-
-    CPU = "cpu"
-    MEMORY = "memory"
-    PID = "pid"
-
-
 def _sample() -> SystemSnapshot:
     """Observe two cycles to calculate nonblocking CPU rates."""
     return asyncio.run(create_default_session().sample_after_warmup())
-
-
-def _sorted_processes(
-    processes: tuple[ProcessMetrics, ...], sort: ProcessSort
-) -> list[ProcessMetrics]:
-    if sort == ProcessSort.PID:
-        return sorted(processes, key=lambda process: process.pid)
-    if sort == ProcessSort.MEMORY:
-        return sorted(
-            processes,
-            key=lambda process: (
-                process.memory_rss_bytes is None,
-                -(process.memory_rss_bytes or 0),
-                process.pid,
-            ),
-        )
-    return sorted(
-        processes,
-        key=lambda process: (
-            process.cpu_percent is None,
-            -(process.cpu_percent or 0),
-            process.pid,
-        ),
-    )
 
 
 @app.callback(invoke_without_command=True)
@@ -103,8 +74,8 @@ def status() -> None:
         top_cpu = next(
             (
                 process
-                for process in _sorted_processes(
-                    process_snapshot.processes, ProcessSort.CPU
+                for process in query_processes(
+                    process_snapshot.processes, ProcessQuery(sort=ProcessSort.CPU)
                 )
                 if process.cpu_percent is not None
             ),
@@ -119,8 +90,8 @@ def status() -> None:
         top_memory = next(
             (
                 process
-                for process in _sorted_processes(
-                    process_snapshot.processes, ProcessSort.MEMORY
+                for process in query_processes(
+                    process_snapshot.processes, ProcessQuery(sort=ProcessSort.MEMORY)
                 )
                 if process.memory_rss_bytes is not None
             ),
@@ -169,11 +140,10 @@ def processes(
         console.print("Process metrics are unavailable.")
         raise typer.Exit(code=1)
 
-    rows = process_snapshot.processes
-    if search:
-        needle = search.casefold()
-        rows = tuple(row for row in rows if needle in (row.name or "").casefold())
-    sorted_rows = _sorted_processes(rows, sort)[:limit]
+    sorted_rows = query_processes(
+        process_snapshot.processes,
+        ProcessQuery(sort=sort, search=search or "", limit=limit),
+    )
     table = Table(title=f"Processes ({len(sorted_rows)} shown)", box=box.SIMPLE)
     table.add_column("PID", justify="right")
     table.add_column("Name", overflow="ellipsis")
