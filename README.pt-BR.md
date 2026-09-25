@@ -10,21 +10,52 @@ de terminal controlada pelo teclado. Não há dashboard web, conta ou telemetria
 Diagnósticos baseados em evidências e alertas estão planejados; hoje, `doctor`
 verifica o próprio SystemPulse.
 
-> **Versão de desenvolvimento:** execute a partir de uma cópia do repositório.
-> O projeto ainda não foi publicado no PyPI. O nome planejado da distribuição é
-> `systempulse-monitor`; o comando instalado será `systempulse`.
+> **Versão de desenvolvimento:** instale a partir de uma cópia do repositório.
+> O projeto ainda não foi publicado no PyPI. O nome da distribuição é
+> `systempulse-monitor`; o comando instalado é `systempulse`.
 
-## Como executar
+## Instalação e uso
 
-Requer Python 3.12+ e [uv](https://docs.astral.sh/uv/). Na pasta do projeto:
+Instale o [uv](https://docs.astral.sh/uv/getting-started/installation/) uma vez:
 
-```sh
-uv sync
-uv run systempulse
+**Windows (PowerShell)**
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-O segundo comando abre a TUI em um terminal interativo. A experiência padrão
-dispensa configuração e permissões elevadas.
+**macOS ou Linux**
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Abra um novo terminal e instale o Python 3.12 com o uv:
+
+```sh
+uv python install 3.12
+```
+
+Clone o [SystemPulse](https://github.com/jeiel2013/SystemPulse) (ou entre em
+uma cópia existente), instale o comando e adicione o diretório de ferramentas
+do uv ao `PATH`:
+
+```sh
+git clone https://github.com/jeiel2013/SystemPulse.git
+cd SystemPulse
+uv tool install --python 3.12 .
+uv tool update-shell
+```
+
+Abra um novo terminal e execute o SystemPulse de qualquer diretório:
+
+```sh
+systempulse
+```
+
+O comando abre a TUI em um terminal interativo. O uv só é necessário para
+instalar ou atualizar o SystemPulse; no uso diário, `uv run` não é necessário.
+A experiência padrão dispensa configuração e permissões elevadas.
 
 ## O que é exibido
 
@@ -42,11 +73,11 @@ e Intel ainda não foram implementados. Veja a [coleta de GPU](docs/pt-BR/gpu.md
 ## Outros comandos
 
 ```sh
-uv run systempulse status
-uv run systempulse processes --sort memory --limit 10
-uv run systempulse processes --search python
-uv run systempulse doctor
-uv run systempulse version
+systempulse status
+systempulse processes --sort memory --limit 10
+systempulse processes --search python
+systempulse doctor
+systempulse version
 ```
 
 `status` mostra um snapshot do sistema. `processes` lista processos com filtros.
