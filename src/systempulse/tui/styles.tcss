@@ -126,3 +126,75 @@ Footer {
 .compact.short #summary {
     height: 10;
 }
+
+#process-explorer {
+    display: none;
+    width: 100%;
+    height: 1fr;
+    padding: 1 2;
+}
+
+.show-processes #body {
+    display: none;
+}
+
+.show-processes #process-explorer {
+    display: block;
+}
+
+#process-explorer-heading {
+    height: 2;
+    color: #7dd3fc;
+    text-style: bold;
+}
+
+#process-search {
+    width: 100%;
+    margin-bottom: 1;
+}
+
+#process-table {
+    width: 100%;
+    height: 1fr;
+    border: round #334155;
+    background: #1b293b;
+}
+
+#process-explorer-hint {
+    height: 2;
+    color: #94a3b8;
+}
+
+.compact #process-explorer {
+    padding: 0 1;
+}
+
+ProcessDetailsScreen {
+    align: center middle;
+    background: #000000 60%;
+}
+
+#detail-dialog {
+    width: 90%;
+    max-width: 90;
+    height: 80%;
+    max-height: 22;
+    border: round #7dd3fc;
+    background: #1b293b;
+    padding: 1 2;
+}
+
+#detail-heading {
+    height: 2;
+    color: #7dd3fc;
+    text-style: bold;
+}
+
+#detail-scroll {
+    height: 1fr;
+}
+
+#detail-hint {
+    height: 1;
+    color: #94a3b8;
+}

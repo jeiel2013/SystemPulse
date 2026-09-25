@@ -78,6 +78,9 @@ class ProcessExplorer(Widget):
     def on_key(self, event: events.Key) -> None:
         """Handle table shortcuts while leaving text entry to the Input widget."""
         if isinstance(self.app.focused, Input):
+            if event.key == "escape":
+                self.focus_table()
+                event.stop()
             return
         sort_keys = {
             "c": ProcessSort.CPU,

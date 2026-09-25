@@ -16,6 +16,9 @@ from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.presentation import format_bytes, format_percent
 from systempulse.services.monitor import MonitorSession, create_default_session
+from systempulse.services.process_details import ProcessDetailsService
+from systempulse.tui.process_details import ProcessDetailsScreen
+from systempulse.tui.process_explorer import ProcessExplorer
 
 _SPARK = "▁▂▃▄▅▆▇█"
 
@@ -38,11 +41,18 @@ class PulseApp(App[None]):
         ("q", "quit", "Quit"),
         ("ctrl+c", "quit", "Quit"),
         ("r", "refresh", "Refresh"),
+        ("1", "overview", "Overview"),
+        ("2", "processes", "Processes"),
     ]
 
-    def __init__(self, session: MonitorSession | None = None) -> None:
+    def __init__(
+        self,
+        session: MonitorSession | None = None,
+        details_service: ProcessDetailsService | None = None,
+    ) -> None:
         super().__init__()
         self.session = session or create_default_session()
+        self.details_service = details_service or ProcessDetailsService()
         self._refresh_requested = asyncio.Event()
 
     def compose(self) -> ComposeResult:
@@ -64,6 +74,7 @@ class PulseApp(App[None]):
             yield Static("TOP CPU PROCESSES", id="process-heading")
             yield DataTable(id="top-processes", cursor_type="none", zebra_stripes=True)
             yield Static("Checking collectors…", id="collector-line")
+        yield ProcessExplorer(id="process-explorer")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -79,6 +90,19 @@ class PulseApp(App[None]):
         """Request an immediate full collection cycle."""
         self._refresh_requested.set()
         self.query_one("#status-line", Static).update("LOCAL MONITORING  ·  Refreshing")
+
+    def action_overview(self) -> None:
+        """Return to the live system summary."""
+        self.remove_class("show-processes")
+
+    def action_processes(self) -> None:
+        """Open the keyboard-driven process explorer."""
+        self.add_class("show-processes")
+        self.query_one(ProcessExplorer).focus_table()
+
+    def on_process_explorer_selected(self, event: ProcessExplorer.Selected) -> None:
+        self.session.state.selected_process = event.process.identity
+        self.push_screen(ProcessDetailsScreen(event.process, self.details_service))
 
     @work
     async def _collect_loop(self) -> None:
@@ -122,6 +146,7 @@ class PulseApp(App[None]):
         table = self.query_one("#top-processes", DataTable)
         table.clear()
         process_snapshot = snapshot.processes
+        self.query_one(ProcessExplorer).update_snapshot(process_snapshot)
         if process_snapshot is not None:
             leaders = sorted(
                 (process for process in process_snapshot.processes if process.pid != 0),
