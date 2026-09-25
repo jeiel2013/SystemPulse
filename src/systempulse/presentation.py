@@ -1,5 +1,7 @@
 """Terminal-friendly formatting for measurements stored in base units."""
 
+from datetime import datetime
+
 
 def format_bytes(value: int | None) -> str:
     """Format a byte count using IEC units without changing the stored value."""
@@ -16,3 +18,16 @@ def format_bytes(value: int | None) -> str:
 def format_percent(value: float | None) -> str:
     """Show unavailable measurements explicitly."""
     return "Unavailable" if value is None else f"{value:.1f}%"
+
+
+def format_uptime(boot_time: datetime | None, observed_at: datetime) -> str:
+    """Express elapsed host time without guessing when boot time is unavailable."""
+    if boot_time is None:
+        return "Unavailable"
+    seconds = int((observed_at - boot_time).total_seconds())
+    if seconds < 0:
+        return "Unavailable"
+    days, remainder = divmod(seconds, 86_400)
+    hours, remainder = divmod(remainder, 3_600)
+    minutes = remainder // 60
+    return f"{days}d {hours}h {minutes}m" if days else f"{hours}h {minutes}m"

@@ -9,7 +9,7 @@ from rich.console import Console
 from textual.widgets import DataTable, Input, Static
 
 from systempulse.domain.availability import Availability, CollectorStatus
-from systempulse.domain.metrics import CpuMetrics, MemoryMetrics
+from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import (
     ProcessDetails,
     ProcessIdentity,
@@ -55,8 +55,13 @@ def _snapshot(*, available: bool = True) -> SystemSnapshot:
             "cpu", Availability.AVAILABLE if available else Availability.ERROR, at
         ),
     )
+    system = (
+        SystemMetrics(at, "Test OS", "1.0", "test64", "test-host", at)
+        if available
+        else None
+    )
     return SystemSnapshot(
-        at, MetricSnapshot(at, cpu, memory), processes, None, statuses
+        at, MetricSnapshot(at, cpu, memory), processes, system, statuses
     )
 
 
@@ -161,6 +166,44 @@ async def test_process_navigation_opens_verified_details_and_returns() -> None:
         assert not isinstance(app.screen, ProcessDetailsScreen)
         await pilot.press("1")
         assert not app.has_class("show-processes")
+
+
+@pytest.mark.asyncio
+async def test_system_view_shows_host_facts_and_survives_resize() -> None:
+    app = PulseApp(session=FakeSession(_snapshot()))
+
+    async with app.run_test(size=(90, 26)) as pilot:
+        await pilot.pause()
+        await pilot.press("3")
+        assert app.has_class("show-system")
+        assert not app.has_class("show-processes")
+        host = app.query_one("#host-facts", Static)
+        output = StringIO()
+        Console(file=output, width=80, force_terminal=False).print(host.content)
+        assert "Test OS" in output.getvalue()
+        assert "test-host" in output.getvalue()
+
+        await pilot.resize_terminal(50, 20)
+        assert app.has_class("compact")
+        assert app.query_one("#system-view").region.width >= 40
+        await pilot.press("2")
+        assert not app.has_class("show-system")
+        assert app.has_class("show-processes")
+
+
+@pytest.mark.asyncio
+async def test_system_view_marks_missing_collector_data() -> None:
+    app = PulseApp(session=FakeSession(_snapshot(available=False)))
+
+    async with app.run_test(size=(80, 24)) as pilot:
+        await pilot.pause()
+        await pilot.press("3")
+        assert "unavailable" in str(app.query_one("#host-facts", Static).render())
+        output = StringIO()
+        Console(file=output, width=80, force_terminal=False).print(
+            app.query_one("#hardware-facts", Static).content
+        )
+        assert "Unavailable" in output.getvalue()
 
 
 @pytest.mark.asyncio

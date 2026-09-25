@@ -138,8 +138,43 @@ Footer {
     display: none;
 }
 
+.show-system #body {
+    display: none;
+}
+
 .show-processes #process-explorer {
     display: block;
+}
+
+#system-view {
+    display: none;
+    width: 100%;
+    height: 1fr;
+    padding: 1 2;
+}
+
+.show-system #system-view {
+    display: block;
+}
+
+#system-heading {
+    height: 2;
+    color: #7dd3fc;
+    text-style: bold;
+}
+
+#host-facts, #hardware-facts {
+    width: 100%;
+    height: auto;
+    min-height: 5;
+    border: round #334155;
+    background: #1b293b;
+    padding: 1 2;
+    margin-bottom: 1;
+}
+
+.compact #system-view {
+    padding: 0 1;
 }
 
 #process-explorer-heading {

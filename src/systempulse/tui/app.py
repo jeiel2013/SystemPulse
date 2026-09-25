@@ -5,6 +5,7 @@ from contextlib import suppress
 from time import monotonic
 from typing import ClassVar
 
+from rich.table import Table
 from rich.text import Text
 from textual import events, work
 from textual.app import App, ComposeResult
@@ -14,7 +15,7 @@ from textual.widgets import DataTable, Footer, Header, Static
 
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
-from systempulse.presentation import format_bytes, format_percent
+from systempulse.presentation import format_bytes, format_percent, format_uptime
 from systempulse.services.monitor import MonitorSession, create_default_session
 from systempulse.services.process_details import ProcessDetailsService
 from systempulse.tui.process_details import ProcessDetailsScreen
@@ -43,6 +44,7 @@ class PulseApp(App[None]):
         ("r", "refresh", "Refresh"),
         ("1", "overview", "Overview"),
         ("2", "processes", "Processes"),
+        ("3", "system", "System"),
     ]
 
     def __init__(
@@ -75,6 +77,10 @@ class PulseApp(App[None]):
             yield DataTable(id="top-processes", cursor_type="none", zebra_stripes=True)
             yield Static("Checking collectors…", id="collector-line")
         yield ProcessExplorer(id="process-explorer")
+        with VerticalScroll(id="system-view"):
+            yield Static("SYSTEM  ·  LOCAL HOST", id="system-heading")
+            yield Static("Waiting for system facts", id="host-facts")
+            yield Static("Waiting for hardware metrics", id="hardware-facts")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -94,11 +100,18 @@ class PulseApp(App[None]):
     def action_overview(self) -> None:
         """Return to the live system summary."""
         self.remove_class("show-processes")
+        self.remove_class("show-system")
 
     def action_processes(self) -> None:
         """Open the keyboard-driven process explorer."""
         self.add_class("show-processes")
+        self.remove_class("show-system")
         self.query_one(ProcessExplorer).focus_table()
+
+    def action_system(self) -> None:
+        """Open observed host and hardware information."""
+        self.remove_class("show-processes")
+        self.add_class("show-system")
 
     def on_process_explorer_selected(self, event: ProcessExplorer.Selected) -> None:
         self.session.state.selected_process = event.process.identity
@@ -183,3 +196,56 @@ class PulseApp(App[None]):
             )
         )
         self.query_one("#collector-line", Static).update(status_text)
+        self._render_system(snapshot)
+
+    def _render_system(self, snapshot: SystemSnapshot) -> None:
+        """Present stable host facts separately from faster changing metrics."""
+        system = snapshot.system
+        if system is None:
+            self.query_one("#host-facts", Static).update(
+                "System information unavailable. Check collector status on Overview."
+            )
+        else:
+            host = Table.grid(padding=(0, 2))
+            host.add_column(style="bold")
+            host.add_column(overflow="fold")
+            host.add_row("Operating system", system.platform_name)
+            host.add_row("Release", system.platform_release or "Unavailable")
+            host.add_row("Architecture", system.architecture or "Unavailable")
+            host.add_row("Hostname", system.hostname or "Unavailable")
+            started = (
+                system.boot_time.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+                if system.boot_time is not None
+                else "Unavailable"
+            )
+            host.add_row("Started", started)
+            host.add_row("Uptime", format_uptime(system.boot_time, snapshot.created_at))
+            self.query_one("#host-facts", Static).update(host)
+
+        hardware = Table.grid(padding=(0, 2))
+        hardware.add_column(style="bold")
+        hardware.add_column()
+        cpu = snapshot.metrics.cpu
+        memory = snapshot.metrics.memory
+        hardware.add_row(
+            "Physical cores",
+            str(cpu.physical_cores) if cpu and cpu.physical_cores else "Unavailable",
+        )
+        hardware.add_row(
+            "Logical cores",
+            str(cpu.logical_cores) if cpu and cpu.logical_cores else "Unavailable",
+        )
+        hardware.add_row(
+            "CPU frequency",
+            f"{cpu.frequency_mhz / 1000:.2f} GHz"
+            if cpu and cpu.frequency_mhz is not None
+            else "Unavailable",
+        )
+        hardware.add_row(
+            "Total memory", format_bytes(memory.total_bytes if memory else None)
+        )
+        hardware.add_row(
+            "Swap / pagefile",
+            format_bytes(memory.swap_total_bytes if memory else None),
+        )
+        self.query_one("#hardware-facts", Static).update(hardware)
