@@ -6,6 +6,7 @@ from io import StringIO
 
 import pytest
 from rich.console import Console
+from textual.containers import VerticalScroll
 from textual.widgets import DataTable, Input, Static
 
 from systempulse.domain.availability import Availability, CollectorStatus
@@ -158,6 +159,19 @@ async def test_overview_orders_cpu_and_memory_leaders_independently() -> None:
         assert str(cpu_table.get_row_at(0)[1]) == "worker"
         assert str(memory_table.get_row_at(0)[1]) == "memory-hog"
         assert memory_table.row_count == 2
+
+
+@pytest.mark.asyncio
+async def test_top_memory_remains_reachable_in_short_terminal() -> None:
+    app = PulseApp(session=FakeSession(_snapshot()))
+
+    async with app.run_test(size=(80, 20)) as pilot:
+        await pilot.pause()
+        body = app.query_one("#body", VerticalScroll)
+        assert app.query_one("#top-memory-processes", DataTable).region.y >= 20
+        await pilot.press("pagedown")
+        await pilot.pause()
+        assert body.scroll_y > 0
 
 
 @pytest.mark.asyncio
