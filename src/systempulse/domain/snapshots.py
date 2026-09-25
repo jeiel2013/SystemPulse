@@ -5,6 +5,7 @@ from datetime import datetime
 
 from systempulse.domain._validation import require_utc
 from systempulse.domain.availability import CollectorStatus
+from systempulse.domain.gpu import GpuSnapshot
 from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import ProcessSnapshot
 
@@ -30,6 +31,7 @@ class SystemSnapshot:
     processes: ProcessSnapshot | None
     system: SystemMetrics | None
     collector_statuses: tuple[CollectorStatus, ...]
+    gpu: GpuSnapshot | None = None
 
     def __post_init__(self) -> None:
         require_utc(self.created_at, "created_at")

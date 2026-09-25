@@ -6,6 +6,7 @@ import pytest
 
 from systempulse.collectors.base import CollectionResult
 from systempulse.domain.availability import Availability, CollectorStatus
+from systempulse.domain.gpu import GpuMetrics, GpuSnapshot
 from systempulse.domain.metrics import CpuMetrics, SystemMetrics
 from systempulse.domain.processes import ProcessSnapshot
 from systempulse.services.aggregator import MetricAggregator
@@ -70,6 +71,18 @@ def test_aggregator_keeps_system_facts() -> None:
     snapshot = MetricAggregator().aggregate((result("system", system),))
 
     assert snapshot.system is system
+
+
+def test_aggregator_keeps_gpu_sample_and_rejects_wrong_type() -> None:
+    sampled_at = datetime(2026, 1, 1, tzinfo=UTC)
+    gpu = GpuMetrics(sampled_at, 0, "Test GPU", 20.0, 1024, 256, 45.0, "test")
+    sample = GpuSnapshot(sampled_at, (gpu,))
+
+    snapshot = MetricAggregator().aggregate((result("gpu", sample),))
+
+    assert snapshot.gpu is sample
+    with pytest.raises(TypeError, match="gpu collector"):
+        MetricAggregator().aggregate((result("gpu", "not GPU metrics"),))
 
 
 def test_aggregator_rejects_duplicate_collector_results() -> None:
