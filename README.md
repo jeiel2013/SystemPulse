@@ -71,6 +71,9 @@ aggregator → application state → Textual interface and CLI. An internal even
 will support later history, rules, and alerts. Widgets will not call `psutil`
 directly. Components will be added when they have working behavior.
 
+The [process scan benchmark methodology](docs/en/benchmarking.md) records how
+collector cost is measured during development.
+
 ## Privacy and safety
 
 SystemPulse will be local-first and read-only initially. No cloud account,

@@ -75,6 +75,9 @@ de eventos dará suporte posterior a histórico, regras e alertas. Widgets não
 consultarão o `psutil` diretamente. Os componentes serão adicionados junto com
 comportamento funcional.
 
+A [metodologia de benchmark da varredura de processos](docs/pt-BR/benchmarking.md)
+registra como o custo do collector é medido durante o desenvolvimento.
+
 ## Privacidade e segurança
 
 O SystemPulse será local-first e inicialmente somente de leitura. Conta na nuvem,
