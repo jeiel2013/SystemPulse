@@ -51,14 +51,14 @@ Footer {
     color: #93c5fd;
 }
 
-#process-heading {
+#process-heading, #memory-process-heading {
     height: 2;
     margin-top: 1;
     color: #e5e7eb;
     text-style: bold;
 }
 
-#top-processes {
+#top-processes, #top-memory-processes {
     height: 13;
     border: round #334155;
     background: #1b293b;
@@ -109,12 +109,12 @@ Footer {
     padding: 0 1;
 }
 
-.short #process-heading {
+.short #process-heading, .short #memory-process-heading {
     height: 1;
     margin-top: 0;
 }
 
-.short #top-processes {
+.short #top-processes, .short #top-memory-processes {
     height: 9;
 }
 

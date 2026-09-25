@@ -18,6 +18,11 @@ from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.presentation import format_bytes, format_percent, format_uptime
 from systempulse.services.monitor import MonitorSession, create_default_session
 from systempulse.services.process_details import ProcessDetailsService
+from systempulse.services.process_query import (
+    ProcessQuery,
+    ProcessSort,
+    query_processes,
+)
 from systempulse.tui.process_details import ProcessDetailsScreen
 from systempulse.tui.process_explorer import ProcessExplorer
 
@@ -75,6 +80,10 @@ class PulseApp(App[None]):
             yield Static("CPU ACTIVITY\nWaiting for samples", id="cpu-history")
             yield Static("TOP CPU PROCESSES", id="process-heading")
             yield DataTable(id="top-processes", cursor_type="none", zebra_stripes=True)
+            yield Static("TOP MEMORY PROCESSES", id="memory-process-heading")
+            yield DataTable(
+                id="top-memory-processes", cursor_type="none", zebra_stripes=True
+            )
             yield Static("Checking collectors…", id="collector-line")
         yield ProcessExplorer(id="process-explorer")
         with VerticalScroll(id="system-view"):
@@ -86,6 +95,9 @@ class PulseApp(App[None]):
     def on_mount(self) -> None:
         table = self.query_one("#top-processes", DataTable)
         table.add_columns("PID", "PROCESS", "CPU", "MEMORY")
+        self.query_one("#top-memory-processes", DataTable).add_columns(
+            "PID", "PROCESS", "MEMORY", "CPU"
+        )
         self._collect_loop()
 
     def on_resize(self, event: events.Resize) -> None:
@@ -158,23 +170,31 @@ class PulseApp(App[None]):
 
         table = self.query_one("#top-processes", DataTable)
         table.clear()
+        memory_table = self.query_one("#top-memory-processes", DataTable)
+        memory_table.clear()
         process_snapshot = snapshot.processes
         self.query_one(ProcessExplorer).update_snapshot(process_snapshot)
         if process_snapshot is not None:
-            leaders = sorted(
-                (process for process in process_snapshot.processes if process.pid != 0),
-                key=lambda process: (
-                    process.cpu_percent is None,
-                    -(process.cpu_percent or 0),
-                    process.pid,
-                ),
-            )[:10]
-            for process in leaders:
+            visible = tuple(
+                process for process in process_snapshot.processes if process.pid != 0
+            )
+            for process in query_processes(
+                visible, ProcessQuery(sort=ProcessSort.CPU, limit=10)
+            ):
                 table.add_row(
                     str(process.pid),
                     Text(process.name or "Unknown"),
                     format_percent(process.cpu_percent),
                     format_bytes(process.memory_rss_bytes),
+                )
+            for process in query_processes(
+                visible, ProcessQuery(sort=ProcessSort.MEMORY, limit=10)
+            ):
+                memory_table.add_row(
+                    str(process.pid),
+                    Text(process.name or "Unknown"),
+                    format_bytes(process.memory_rss_bytes),
+                    format_percent(process.cpu_percent),
                 )
         observed_at = snapshot.created_at.astimezone().strftime("%H:%M:%S")
         count = len(process_snapshot.processes) if process_snapshot else 0

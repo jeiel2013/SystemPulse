@@ -132,6 +132,34 @@ async def test_overview_renders_and_handles_refresh_resize_and_quit() -> None:
 
 
 @pytest.mark.asyncio
+async def test_overview_orders_cpu_and_memory_leaders_independently() -> None:
+    snapshot = _snapshot()
+    assert snapshot.processes is not None
+    worker = snapshot.processes.processes[0]
+    memory_hog = replace(
+        worker,
+        pid=43,
+        identity=ProcessIdentity(43, worker.sampled_at),
+        name="memory-hog",
+        cpu_percent=1.0,
+        memory_rss_bytes=4096,
+    )
+    snapshot = replace(
+        snapshot,
+        processes=ProcessSnapshot(worker.sampled_at, (worker, memory_hog)),
+    )
+    app = PulseApp(session=FakeSession(snapshot))
+
+    async with app.run_test(size=(90, 28)) as pilot:
+        await pilot.pause()
+        cpu_table = app.query_one("#top-processes", DataTable)
+        memory_table = app.query_one("#top-memory-processes", DataTable)
+        assert str(cpu_table.get_row_at(0)[1]) == "worker"
+        assert str(memory_table.get_row_at(0)[1]) == "memory-hog"
+        assert memory_table.row_count == 2
+
+
+@pytest.mark.asyncio
 async def test_process_navigation_opens_verified_details_and_returns() -> None:
     session = FakeSession(_snapshot())
     details_service = FakeDetailsService()
