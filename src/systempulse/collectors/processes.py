@@ -101,7 +101,8 @@ class ProcessCollector:
             identity = _process_identity(process.pid, info.get("create_time"))
             cpu_seconds = _cpu_seconds(info.get("cpu_times"))
             cpu_percent: float | None = None
-            if identity is not None and cpu_seconds is not None:
+            # PID 0 is a system idle pseudo-process, not a CPU consumer.
+            if process.pid != 0 and identity is not None and cpu_seconds is not None:
                 previous = self._previous_cpu.get(identity)
                 if previous is not None:
                     previous_elapsed, previous_cpu = previous

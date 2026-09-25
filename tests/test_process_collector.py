@@ -112,6 +112,22 @@ def test_pid_reuse_does_not_inherit_previous_cpu(
     assert second.metric.processes[0].cpu_percent is None
 
 
+def test_pid_zero_does_not_appear_as_cpu_consumer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    install_scan(
+        monkeypatch,
+        [[process(0, 1_000.0, 100.0)], [process(0, 1_000.0, 120.0)]],
+    )
+    collector = ProcessCollector()
+
+    collector.collect()
+    second = collector.collect()
+
+    assert second.metric is not None
+    assert second.metric.processes[0].cpu_percent is None
+
+
 def test_protected_process_is_retained_and_disappeared_process_is_skipped(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
