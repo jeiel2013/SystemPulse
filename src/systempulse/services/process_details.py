@@ -41,7 +41,8 @@ class ProcessDetailsService:
                 parent_pid = _optional(process.ppid)
                 executable = _optional(process.exe)
                 command = _optional(process.cmdline)
-            if _created_at(process) != identity.created_at:
+            # psutil caches create_time on each Process object; instantiate again.
+            if _created_at(psutil.Process(identity.pid)) != identity.created_at:
                 return None
             return ProcessDetails(
                 sampled_at=datetime.now(UTC),

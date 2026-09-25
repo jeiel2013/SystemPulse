@@ -19,19 +19,15 @@ class FakeProcess:
         created: float,
         *,
         protected: bool = False,
-        reused: bool = False,
     ) -> None:
         self.pid = pid
         self.created = created
         self.protected = protected
-        self.reused = reused
-        self.create_calls = 0
         self.thread_id: int | None = None
 
     def create_time(self) -> float:
         self.thread_id = get_ident()
-        self.create_calls += 1
-        return self.created + (1.0 if self.reused and self.create_calls > 1 else 0.0)
+        return self.created
 
     def oneshot(self) -> nullcontext[None]:
         return nullcontext()
@@ -86,8 +82,8 @@ async def test_details_are_collected_off_event_loop_and_preserve_missing_fields(
 async def test_pid_reuse_during_read_discards_details(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    fake = FakeProcess(42, 1_000.0, reused=True)
-    monkeypatch.setattr(psutil, "Process", lambda pid: fake)
+    instances = iter((FakeProcess(42, 1_000.0), FakeProcess(42, 2_000.0)))
+    monkeypatch.setattr(psutil, "Process", lambda pid: next(instances))
     identity = ProcessIdentity(42, datetime.fromtimestamp(1_000.0, UTC))
 
     assert await ProcessDetailsService().read(identity) is None
