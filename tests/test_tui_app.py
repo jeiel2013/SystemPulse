@@ -233,7 +233,7 @@ async def test_overview_and_system_view_show_observed_gpu_values() -> None:
         card = str(app.query_one("#gpu-card", Static).render())
         assert "38.0%" in card
         assert "2.0 GiB" in card
-        assert "51°C" in card
+        assert "51 C" in card
 
         await pilot.press("3")
         output = StringIO()

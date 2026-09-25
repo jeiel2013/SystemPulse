@@ -90,6 +90,23 @@ def assess_environment(
             detail += f" ({status.reason})"
         checks.append(DoctorCheck(f"{name} collector", state, detail))
 
+    gpu_status = statuses.get("gpu")
+    if gpu_status is not None:
+        detail = gpu_status.availability.value.replace("_", " ")
+        if snapshot.gpu is not None:
+            detail += f" ({snapshot.gpu.devices[0].source})"
+        elif gpu_status.reason:
+            detail += f" ({gpu_status.reason})"
+        checks.append(
+            DoctorCheck(
+                "GPU provider",
+                CheckState.PASS
+                if gpu_status.availability == Availability.AVAILABLE
+                else CheckState.WARN,
+                detail,
+            )
+        )
+
     checks.append(
         DoctorCheck(
             "Interactive terminal",

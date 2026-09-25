@@ -24,5 +24,5 @@ def test_uptime_does_not_guess_missing_or_future_boot_time() -> None:
 
 
 def test_temperature_marks_missing_sensor() -> None:
-    assert format_temperature(51.2) == "51°C"
+    assert format_temperature(51.2) == "51 C"
     assert format_temperature(None) == "Unavailable"

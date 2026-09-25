@@ -22,7 +22,7 @@ def format_percent(value: float | None) -> str:
 
 def format_temperature(value: float | None) -> str:
     """Show observed temperatures without manufacturing missing readings."""
-    return "Unavailable" if value is None else f"{value:.0f}°C"
+    return "Unavailable" if value is None else f"{value:.0f} C"
 
 
 def format_uptime(boot_time: datetime | None, observed_at: datetime) -> str:

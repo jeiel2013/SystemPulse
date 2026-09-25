@@ -12,7 +12,12 @@ from rich.text import Text
 
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
-from systempulse.presentation import format_bytes, format_percent, format_uptime
+from systempulse.presentation import (
+    format_bytes,
+    format_percent,
+    format_temperature,
+    format_uptime,
+)
 from systempulse.services.doctor import CheckState, run_doctor
 from systempulse.services.monitor import create_default_session
 from systempulse.services.process_query import (
@@ -81,6 +86,20 @@ def status() -> None:
         "Uptime",
         format_uptime(system.boot_time if system else None, snapshot.created_at),
     )
+    if snapshot.gpu is None:
+        table.add_row("GPU", "Unavailable")
+    else:
+        gpu = snapshot.gpu.devices[0]
+        extra = len(snapshot.gpu.devices) - 1
+        label = f"{gpu.name} (+{extra} more)" if extra else gpu.name
+        table.add_row("GPU", label)
+        table.add_row("GPU load", format_percent(gpu.utilization_percent))
+        table.add_row(
+            "VRAM",
+            f"{format_bytes(gpu.vram_used_bytes)} / "
+            f"{format_bytes(gpu.vram_total_bytes)}",
+        )
+        table.add_row("GPU temperature", format_temperature(gpu.temperature_celsius))
     process_snapshot = snapshot.processes
     if process_snapshot and process_snapshot.processes:
         top_cpu = next(

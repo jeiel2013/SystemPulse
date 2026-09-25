@@ -96,6 +96,31 @@ def test_doctor_flags_missing_collector_and_unsupported_python() -> None:
     )
 
 
+def test_doctor_treats_optional_gpu_absence_as_warning() -> None:
+    snapshot = _snapshot()
+    snapshot = SystemSnapshot(
+        snapshot.created_at,
+        snapshot.metrics,
+        None,
+        None,
+        (
+            *snapshot.collector_statuses,
+            CollectorStatus("gpu", Availability.UNAVAILABLE, snapshot.created_at),
+        ),
+    )
+    report = assess_environment(
+        snapshot,
+        python_version=(3, 12, 14),
+        platform_tag="linux",
+        interactive_terminal=True,
+        color_system="standard",
+        version="0.1.0.dev0",
+    )
+
+    assert report.exit_code == 0
+    assert DoctorCheck("GPU provider", CheckState.WARN, "unavailable") in report.checks
+
+
 def test_doctor_command_reports_results_and_failure_exit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
