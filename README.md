@@ -24,21 +24,24 @@ None yet. Recordings are planned before the first release.
 Currently available:
 
 - Installable Python package with a `systempulse` command.
-- `systempulse` opens a live overview with CPU, memory, recent CPU activity, and
-  leading CPU processes in an interactive terminal.
+- `systempulse` opens a live overview with CPU, memory, recent CPU activity,
+  optional GPU metrics, and separate Top CPU and Top Memory process lists.
 - The Processes view provides live search, CPU/memory/PID sorting, keyboard
   selection, and verified details for a selected process. Fields blocked by
   the operating system are marked unavailable.
-- The System view shows observed host, CPU hardware, and memory information,
-  including uptime when boot time is available.
+- The System view shows observed host, CPU hardware, memory, and available GPU
+  information, including uptime when boot time is available.
+- Dark and light terminal themes switch immediately with `t` for the current
+  session.
 - `systempulse version` reports the installed package version.
-- `systempulse status` shows current CPU, memory, system uptime, and leading
-  processes.
+- `systempulse status` shows current CPU, memory, system uptime, optional GPU
+  metrics, and leading processes.
 - `systempulse processes` lists processes with CPU and memory sorting, name search,
   and a row limit. Unavailable process fields are labeled explicitly.
 - `systempulse doctor` checks the Python runtime, target platform, shipped
-  collectors, and terminal capabilities. A failed required collector gives a
-  nonzero exit status; a noninteractive terminal produces a warning.
+  collectors, GPU provider, and terminal capabilities. A failed required
+  collector gives a nonzero exit status; an unavailable GPU or noninteractive
+  terminal produces a warning.
 
 The remaining v0.1 target includes the `top` command and broader platform
 validation. These remain planned.
@@ -81,6 +84,7 @@ return a one-shot result and then exit.
 | `1` | Open Overview |
 | `2` | Open Processes |
 | `3` | Open System |
+| `t` | Switch between dark and light themes |
 | `/` | Focus process search in Processes |
 | `c`, `m`, `p` | Sort processes by CPU, memory, or PID |
 | `Enter` | Open selected process details |
@@ -96,6 +100,11 @@ executed on Windows; Linux and macOS validation is still pending. Python 3.12+
 is required. The overview scrolls vertically when the terminal is too small to
 show every panel at once.
 
+GPU load, VRAM usage, and temperature currently use an optional NVIDIA provider
+based on `nvidia-smi`. Machines without that tool show GPU metrics as unavailable;
+AMD and Intel providers are not implemented yet. Some NVIDIA drivers or devices
+may omit individual readings. See the [GPU collector guide](docs/en/gpu.md).
+
 ## Architecture
 
 The current local pipeline is: typed collectors → sampling service → metric
@@ -104,7 +113,7 @@ the TUI event loop and have independent sampling intervals. An internal event bu
 for later history, rules, and alerts is planned. Widgets do not call `psutil`
 directly. Host facts are collected once per minute. Detailed process facts are
 read on demand after checking the process identity with both PID and creation
-time.
+time. The GPU provider runs at a two-second interval and does not block widgets.
 
 The [process scan benchmark methodology](docs/en/benchmarking.md) records how
 collector cost is measured during development.
@@ -123,7 +132,7 @@ locally and do not transmit them.
 | v0.2 | Disk, network, process tree |
 | v0.3 | SQLite history, terminal charts, reports |
 | v0.4 | Rules, alerts, evidence-based observations |
-| v0.5 | GPU, battery, sensors |
+| v0.5 | More GPU providers, battery, sensors |
 | v1.0 | Stable cross-platform support and documented plugin API |
 
 ## Contributing

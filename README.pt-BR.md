@@ -25,19 +25,22 @@ Disponíveis agora:
 
 - Pacote Python instalável com o comando `systempulse`.
 - `systempulse` abre uma visão em tempo real com CPU, memória, atividade recente
-  da CPU e processos de maior CPU em um terminal interativo.
+  da CPU, métricas opcionais da GPU e listas separadas de Top CPU e Top RAM.
 - A visão Processes oferece busca em tempo real, ordenação por CPU, memória ou
   PID, seleção por teclado e detalhes verificados do processo selecionado.
   Campos bloqueados pelo sistema operacional são marcados como indisponíveis.
-- A visão System mostra informações observadas do host, hardware de CPU e
-  memória, incluindo uptime quando o horário de inicialização está disponível.
+- A visão System mostra informações observadas do host, hardware de CPU, memória
+  e GPUs disponíveis, incluindo uptime quando o horário de inicialização existe.
+- Temas escuro e claro mudam imediatamente com `t` durante a sessão atual.
 - `systempulse version` informa a versão do pacote instalado.
-- `systempulse status` mostra CPU, memória, uptime e processos de maior consumo.
+- `systempulse status` mostra CPU, memória, uptime, métricas opcionais da GPU e
+  processos de maior consumo.
 - `systempulse processes` lista processos com ordenação por CPU ou memória, busca
   pelo nome e limite de linhas. Campos indisponíveis aparecem identificados.
 - `systempulse doctor` verifica o Python, a plataforma alvo, os collectors
-  incluídos e as capacidades do terminal. Falha de collector essencial retorna
-  código diferente de zero; ausência de terminal interativo gera aviso.
+  incluídos, o provider de GPU e as capacidades do terminal. Falha de collector
+  essencial retorna código diferente de zero; GPU indisponível ou ausência de
+  terminal interativo geram aviso.
 
 A meta restante para v0.1 inclui o comando `top` e validação mais ampla entre
 plataformas. Essas etapas ainda estão planejadas.
@@ -80,6 +83,7 @@ as taxas de CPU; mostram o resultado e encerram.
 | `1` | Abrir Overview |
 | `2` | Abrir Processes |
 | `3` | Abrir System |
+| `t` | Alternar entre os temas escuro e claro |
 | `/` | Focar a busca de processos em Processes |
 | `c`, `m`, `p` | Ordenar processos por CPU, memória ou PID |
 | `Enter` | Abrir os detalhes do processo selecionado |
@@ -95,6 +99,12 @@ executados no Windows; a validação em Linux e macOS ainda está pendente.
 É necessário Python 3.12+. A visão pode ser rolada verticalmente quando o terminal
 não comporta todos os painéis de uma vez.
 
+Carga da GPU, uso de VRAM e temperatura utilizam atualmente um provider NVIDIA
+opcional baseado em `nvidia-smi`. Em máquinas sem essa ferramenta, as métricas da
+GPU aparecem como indisponíveis; providers AMD e Intel ainda não foram
+implementados. Alguns drivers ou dispositivos NVIDIA podem omitir leituras
+individuais. Consulte o [guia do collector de GPU](docs/pt-BR/gpu.md).
+
 ## Arquitetura
 
 O fluxo local atual é: collectors tipados → serviço de amostragem → agregador de
@@ -103,7 +113,8 @@ fora do loop de eventos da TUI e possuem intervalos de coleta independentes. Um
 barramento interno para futuro histórico, regras e alertas ainda está planejado.
 Widgets não consultam o `psutil` diretamente. Informações do host são coletadas
 uma vez por minuto. Os detalhes de um processo são lidos sob demanda após
-verificar sua identidade pelo PID e horário de criação.
+verificar sua identidade pelo PID e horário de criação. O provider de GPU coleta
+a cada dois segundos e não bloqueia os widgets.
 
 A [metodologia de benchmark da varredura de processos](docs/pt-BR/benchmarking.md)
 registra como o custo do collector é medido durante o desenvolvimento.
@@ -122,7 +133,7 @@ coletam métricas localmente e não as transmitem.
 | v0.2 | Disco, rede, árvore de processos |
 | v0.3 | Histórico SQLite, gráficos no terminal, relatórios |
 | v0.4 | Regras, alertas, observações fundamentadas em evidências |
-| v0.5 | GPU, bateria, sensores |
+| v0.5 | Mais providers de GPU, bateria, sensores |
 | v1.0 | Suporte multiplataforma estável e API de plugins documentada |
 
 ## Contribuição
