@@ -6,7 +6,7 @@ import pytest
 
 from systempulse.collectors.base import CollectionResult
 from systempulse.domain.availability import Availability, CollectorStatus
-from systempulse.domain.metrics import CpuMetrics
+from systempulse.domain.metrics import CpuMetrics, SystemMetrics
 from systempulse.domain.processes import ProcessSnapshot
 from systempulse.services.aggregator import MetricAggregator
 
@@ -61,6 +61,15 @@ def test_aggregator_keeps_process_scan_timestamp() -> None:
 
     assert snapshot.processes is processes
     assert snapshot.processes.sampled_at == scanned_at
+
+
+def test_aggregator_keeps_system_facts() -> None:
+    sampled_at = datetime(2026, 1, 1, tzinfo=UTC)
+    system = SystemMetrics(sampled_at, "Windows", "11", "AMD64", "host", None)
+
+    snapshot = MetricAggregator().aggregate((result("system", system),))
+
+    assert snapshot.system is system
 
 
 def test_aggregator_rejects_duplicate_collector_results() -> None:

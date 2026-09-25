@@ -6,6 +6,7 @@ from systempulse.collectors.cpu import CpuCollector
 from systempulse.collectors.memory import MemoryCollector
 from systempulse.collectors.processes import ProcessCollector
 from systempulse.collectors.registry import CollectorRegistry
+from systempulse.collectors.system import SystemCollector
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.services.aggregator import MetricAggregator
 from systempulse.services.metrics import MetricService
@@ -50,4 +51,5 @@ def create_default_session() -> MonitorSession:
     registry.register(CpuCollector())
     registry.register(MemoryCollector())
     registry.register(ProcessCollector())
+    registry.register(SystemCollector())
     return MonitorSession(registry)
