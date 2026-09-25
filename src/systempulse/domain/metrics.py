@@ -81,3 +81,25 @@ class MemoryMetrics:
             raise ValueError("swap values must be available together")
         if not self.source:
             raise ValueError("source must not be empty")
+
+
+@dataclass(frozen=True, slots=True)
+class SystemMetrics:
+    """Stable host facts; boot time may be unavailable on some platforms."""
+
+    sampled_at: datetime
+    platform_name: str
+    platform_release: str
+    architecture: str
+    hostname: str | None
+    boot_time: datetime | None
+    source: str = "platform"
+
+    def __post_init__(self) -> None:
+        require_utc(self.sampled_at)
+        if self.boot_time is not None:
+            require_utc(self.boot_time, "boot_time")
+        if not self.platform_name:
+            raise ValueError("platform_name must not be empty")
+        if not self.source:
+            raise ValueError("source must not be empty")
