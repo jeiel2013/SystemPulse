@@ -62,3 +62,25 @@ class ProcessSnapshot:
     def __post_init__(self) -> None:
         require_utc(self.sampled_at)
         require_nonnegative(self.skipped_count, "skipped_count")
+
+
+@dataclass(frozen=True, slots=True)
+class ProcessDetails:
+    """Additional facts read only when a process instance is selected."""
+
+    sampled_at: datetime
+    identity: ProcessIdentity
+    name: str | None
+    status: str | None
+    user: str | None
+    threads: int | None
+    parent_pid: int | None
+    executable: str | None
+    command_line: tuple[str, ...] | None
+
+    def __post_init__(self) -> None:
+        require_utc(self.sampled_at)
+        if self.threads is not None:
+            require_nonnegative(self.threads, "threads")
+        if self.parent_pid is not None:
+            require_nonnegative(self.parent_pid, "parent_pid")
