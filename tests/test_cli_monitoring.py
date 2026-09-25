@@ -85,9 +85,7 @@ def test_failed_collectors_do_not_invent_metrics(
         observed_snapshot,
         metrics=MetricSnapshot(at, None, None),
         processes=None,
-        collector_statuses=(
-            CollectorStatus("cpu", Availability.ERROR, at, "OSError"),
-        ),
+        collector_statuses=(CollectorStatus("cpu", Availability.ERROR, at, "OSError"),),
     )
     monkeypatch.setattr("systempulse.cli._sample", lambda: missing)
 

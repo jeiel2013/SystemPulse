@@ -24,6 +24,7 @@ classifiers = [
 dependencies = [
     "psutil>=7.2,<8",
     "rich>=15,<16",
+    "textual>=8.2,<9",
     "typer>=0.24,<1",
 ]
 

@@ -1,6 +1,7 @@
 """Non-interactive local monitoring commands."""
 
 import asyncio
+import sys
 from enum import StrEnum
 from typing import Annotated
 
@@ -63,9 +64,18 @@ def _sorted_processes(
 
 @app.callback(invoke_without_command=True)
 def root(context: typer.Context) -> None:
-    """Show the current development state when no command is selected."""
+    """Open the live terminal interface when no command is selected."""
     if context.invoked_subcommand is None:
-        typer.echo("Live monitoring is not available in this development build.")
+        if not sys.stdin.isatty() or not sys.stdout.isatty():
+            typer.echo(
+                "SystemPulse needs an interactive terminal. "
+                "Use 'systempulse status' for one-shot output.",
+                err=True,
+            )
+            raise typer.Exit(code=1)
+        from systempulse.tui.app import PulseApp
+
+        PulseApp().run()
 
 
 @app.command()

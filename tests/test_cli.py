@@ -14,8 +14,9 @@ def test_version_matches_installed_metadata() -> None:
     assert result.stdout.strip() == f"SystemPulse {version('systempulse-monitor')}"
 
 
-def test_default_command_describes_development_state() -> None:
+def test_default_command_requires_interactive_terminal() -> None:
     result = CliRunner().invoke(app, [])
 
-    assert result.exit_code == 0
-    assert "not available" in result.stdout
+    assert result.exit_code == 1
+    assert "interactive terminal" in result.output
+    assert "systempulse status" in result.output
