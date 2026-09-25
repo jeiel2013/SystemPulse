@@ -6,9 +6,9 @@
 
 Saiba o que seu computador está fazendo sem sair do terminal.
 
-> **Estado do desenvolvimento:** uma visão Textual em tempo real e comandos
-> pontuais já funcionam a partir de uma cópia do código. O explorador interativo
-> de processos ainda está em desenvolvimento. Não há versão publicada no PyPI.
+> **Estado do desenvolvimento:** a visão Textual em tempo real, o explorador
+> interativo de processos e os comandos pontuais funcionam a partir de uma cópia
+> do código. Não há versão publicada no PyPI.
 
 O SystemPulse foi concebido como uma aplicação local e inicialmente somente de
 leitura. Seus três princípios são **Measure. Understand. Inform.** Observações e
@@ -17,8 +17,7 @@ afirmará causalidade sem evidências.
 
 ## Capturas de tela e gravações do terminal
 
-Ainda não existem. As gravações serão adicionadas quando a interface estiver
-funcional.
+Ainda não existem. Gravações estão planejadas antes da primeira versão.
 
 ## Funcionalidades
 
@@ -27,14 +26,16 @@ Disponíveis agora:
 - Pacote Python instalável com o comando `systempulse`.
 - `systempulse` abre uma visão em tempo real com CPU, memória, atividade recente
   da CPU e processos de maior CPU em um terminal interativo.
+- A visão Processes oferece busca em tempo real, ordenação por CPU, memória ou
+  PID, seleção por teclado e detalhes verificados do processo selecionado.
+  Campos bloqueados pelo sistema operacional são marcados como indisponíveis.
 - `systempulse version` informa a versão do pacote instalado.
 - `systempulse status` mostra CPU, memória e processos de maior consumo.
 - `systempulse processes` lista processos com ordenação por CPU ou memória, busca
   pelo nome e limite de linhas. Campos indisponíveis aparecem identificados.
 
-A meta para v0.1 também inclui um explorador interativo de processos, informações
-do sistema e os comandos `top` e `doctor`. Essas funcionalidades ainda estão
-planejadas.
+A meta restante para v0.1 inclui informações do sistema e os comandos `top` e
+`doctor`. Essas funcionalidades ainda estão planejadas.
 
 ## Instalação
 
@@ -70,8 +71,15 @@ mostram o resultado e encerram.
 | --- | --- |
 | `q`, `Ctrl+C` | Sair |
 | `r` | Solicitar uma atualização completa |
+| `1` | Abrir Overview |
+| `2` | Abrir Processes |
+| `/` | Focar a busca de processos em Processes |
+| `c`, `m`, `p` | Ordenar processos por CPU, memória ou PID |
+| `Enter` | Abrir os detalhes do processo selecionado |
+| `Esc` | Voltar da busca para a tabela ou fechar os detalhes |
 
-Outros atalhos de navegação virão com o explorador de processos.
+Digite um termo para filtrar nomes de processos. Pressione `Enter` no campo de
+busca para voltar à tabela. Com os detalhes abertos, `q` fecha essa visão.
 
 ## Plataformas suportadas
 
@@ -86,7 +94,8 @@ O fluxo local atual é: collectors tipados → serviço de amostragem → agrega
 métricas → estado da aplicação → interface Textual e CLI. Os collectors executam
 fora do loop de eventos da TUI e possuem intervalos de coleta independentes. Um
 barramento interno para futuro histórico, regras e alertas ainda está planejado.
-Widgets não consultam o `psutil` diretamente.
+Widgets não consultam o `psutil` diretamente. Os detalhes de um processo são
+lidos sob demanda após verificar sua identidade pelo PID e horário de criação.
 
 A [metodologia de benchmark da varredura de processos](docs/pt-BR/benchmarking.md)
 registra como o custo do collector é medido durante o desenvolvimento.

@@ -6,10 +6,9 @@
 
 Know what your computer is doing, without leaving your terminal.
 
-> **Development status:** A live Textual overview and one-shot CLI commands now
-> work from a source checkout. The interactive process explorer is still in
-> development.
-> No release of this project has been published to PyPI.
+> **Development status:** The live Textual overview, interactive process
+> explorer, and one-shot CLI commands work from a source checkout. No release
+> of this project has been published to PyPI.
 
 SystemPulse is designed as a local, read-only terminal application. Its three guiding
 principles are **Measure. Understand. Inform.** Future observations and diagnostics
@@ -18,7 +17,7 @@ without evidence.
 
 ## Screenshots and terminal recordings
 
-None yet. Recordings will be added when the terminal interface is functional.
+None yet. Recordings are planned before the first release.
 
 ## Features
 
@@ -27,13 +26,16 @@ Currently available:
 - Installable Python package with a `systempulse` command.
 - `systempulse` opens a live overview with CPU, memory, recent CPU activity, and
   leading CPU processes in an interactive terminal.
+- The Processes view provides live search, CPU/memory/PID sorting, keyboard
+  selection, and verified details for a selected process. Fields blocked by
+  the operating system are marked unavailable.
 - `systempulse version` reports the installed package version.
 - `systempulse status` shows current CPU, memory, and leading processes.
 - `systempulse processes` lists processes with CPU and memory sorting, name search,
   and a row limit. Unavailable process fields are labeled explicitly.
 
-The v0.1 target also includes an interactive process explorer, system information,
-and `top` and `doctor` commands. These remain planned.
+The remaining v0.1 target includes system information and `top` and `doctor`
+commands. These remain planned.
 
 ## Installation
 
@@ -69,8 +71,15 @@ view and then exit.
 | --- | --- |
 | `q`, `Ctrl+C` | Quit |
 | `r` | Request a full refresh |
+| `1` | Open Overview |
+| `2` | Open Processes |
+| `/` | Focus process search in Processes |
+| `c`, `m`, `p` | Sort processes by CPU, memory, or PID |
+| `Enter` | Open selected process details |
+| `Esc` | Return from search to the table, or close details |
 
-More navigation will arrive with the process explorer.
+Type a search term to filter process names. Press `Enter` in the search field
+to return to the table. While details are open, `q` closes the details view.
 
 ## Supported platforms
 
@@ -85,7 +94,8 @@ The current local pipeline is: typed collectors → sampling service → metric
 aggregator → application state → Textual interface and CLI. Collectors run outside
 the TUI event loop and have independent sampling intervals. An internal event bus
 for later history, rules, and alerts is planned. Widgets do not call `psutil`
-directly.
+directly. Detailed process facts are read on demand after checking the process
+identity with both PID and creation time.
 
 The [process scan benchmark methodology](docs/en/benchmarking.md) records how
 collector cost is measured during development.
