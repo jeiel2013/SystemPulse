@@ -85,6 +85,7 @@ return a one-shot result and then exit.
 | `2` | Open Processes |
 | `3` | Open System |
 | `t` | Switch between dark and light themes |
+| `PageUp`, `PageDown` | Scroll Overview panels in a short terminal |
 | `/` | Focus process search in Processes |
 | `c`, `m`, `p` | Sort processes by CPU, memory, or PID |
 | `Enter` | Open selected process details |

@@ -84,6 +84,7 @@ as taxas de CPU; mostram o resultado e encerram.
 | `2` | Abrir Processes |
 | `3` | Abrir System |
 | `t` | Alternar entre os temas escuro e claro |
+| `PageUp`, `PageDown` | Rolar os painéis de Overview em um terminal baixo |
 | `/` | Focar a busca de processos em Processes |
 | `c`, `m`, `p` | Ordenar processos por CPU, memória ou PID |
 | `Enter` | Abrir os detalhes do processo selecionado |
