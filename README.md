@@ -6,8 +6,8 @@
 
 Know what your computer is doing, without leaving your terminal.
 
-> **Development status:** This repository is at the package foundation stage. Live
-> monitoring, the Textual interface, and process inspection are not implemented yet.
+> **Development status:** One-shot CPU, memory, and process commands now work from
+> a source checkout. The real-time Textual interface is still in development.
 > No release of this project has been published to PyPI.
 
 SystemPulse is designed as a local, read-only terminal application. Its three guiding
@@ -25,10 +25,12 @@ Currently available:
 
 - Installable Python package with a `systempulse` command.
 - `systempulse version` reports the installed package version.
+- `systempulse status` shows current CPU, memory, and leading processes.
+- `systempulse processes` lists processes with CPU and memory sorting, name search,
+  and a row limit. Unavailable process fields are labeled explicitly.
 
-The v0.1 target includes live CPU and memory metrics, a process explorer, recent
-terminal charts, system information, and `status`, `top`, `processes`, and `doctor`
-commands. These are planned features, not current commands.
+The v0.1 target also includes a live process explorer, recent terminal charts,
+system information, and `top` and `doctor` commands. These remain planned.
 
 ## Installation
 
@@ -48,11 +50,15 @@ belongs to a separate project.
 
 ```sh
 uv run systempulse version
+uv run systempulse status
+uv run systempulse processes --sort memory --limit 10
+uv run systempulse processes --search python
 uv run systempulse
 ```
 
-The second command currently reports that live monitoring is under development.
-It does not open a monitoring interface yet.
+The last command currently reports that the live terminal interface is under
+development. `status` and `processes` take two samples about one second apart to
+calculate CPU rates; they return a one-shot view and then exit.
 
 ## Keyboard shortcuts
 
@@ -61,24 +67,25 @@ documented when the interface is implemented.
 
 ## Supported platforms
 
-Windows, Linux, and macOS are planned targets. Cross-platform behavior has not yet
-been validated. Python 3.12+ is required.
+Windows, Linux, and macOS are planned targets. The current commands have been
+executed on Windows; Linux and macOS validation is still pending. Python 3.12+
+is required.
 
 ## Architecture
 
-The intended local pipeline is: typed collectors → sampling service → metric
-aggregator → application state → Textual interface and CLI. An internal event bus
-will support later history, rules, and alerts. Widgets will not call `psutil`
-directly. Components will be added when they have working behavior.
+The current local pipeline is: typed collectors → sampling service → metric
+aggregator → application state → CLI. The Textual interface and an internal event
+bus for later history, rules, and alerts are planned. Widgets will not call
+`psutil` directly.
 
 The [process scan benchmark methodology](docs/en/benchmarking.md) records how
 collector cost is measured during development.
 
 ## Privacy and safety
 
-SystemPulse will be local-first and read-only initially. No cloud account,
-telemetry, tracking, or remote API is part of the default design. The current
-development command does not collect or transmit system metrics.
+SystemPulse is local-first and read-only. No cloud account, telemetry, tracking,
+or remote API is part of the default design. The current commands collect metrics
+locally and do not transmit them.
 
 ## Roadmap
 

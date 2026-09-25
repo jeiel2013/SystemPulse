@@ -6,10 +6,9 @@
 
 Saiba o que seu computador está fazendo sem sair do terminal.
 
-> **Estado do desenvolvimento:** este repositório está na etapa de fundação do
-> pacote. O monitoramento em tempo real, a interface Textual e a inspeção de
-> processos ainda não foram implementados. Não há versão deste projeto publicada
-> no PyPI.
+> **Estado do desenvolvimento:** comandos pontuais de CPU, memória e processos já
+> funcionam a partir de uma cópia do código. A interface Textual em tempo real
+> ainda está em desenvolvimento. Não há versão deste projeto publicada no PyPI.
 
 O SystemPulse foi concebido como uma aplicação local e inicialmente somente de
 leitura. Seus três princípios são **Measure. Understand. Inform.** Observações e
@@ -27,11 +26,13 @@ Disponíveis agora:
 
 - Pacote Python instalável com o comando `systempulse`.
 - `systempulse version` informa a versão do pacote instalado.
+- `systempulse status` mostra CPU, memória e processos de maior consumo.
+- `systempulse processes` lista processos com ordenação por CPU ou memória, busca
+  pelo nome e limite de linhas. Campos indisponíveis aparecem identificados.
 
-A meta para v0.1 inclui métricas de CPU e memória em tempo real, explorador de
-processos, gráficos recentes no terminal, informações do sistema e os comandos
-`status`, `top`, `processes` e `doctor`. São funcionalidades planejadas, não
-comandos disponíveis atualmente.
+A meta para v0.1 também inclui explorador de processos em tempo real, gráficos
+recentes no terminal, informações do sistema e os comandos `top` e `doctor`.
+Essas funcionalidades ainda estão planejadas.
 
 ## Instalação
 
@@ -51,11 +52,15 @@ PyPI pertence a outro projeto.
 
 ```sh
 uv run systempulse version
+uv run systempulse status
+uv run systempulse processes --sort memory --limit 10
+uv run systempulse processes --search python
 uv run systempulse
 ```
 
-O segundo comando apenas informa que o monitoramento em tempo real está em
-desenvolvimento. Ele ainda não abre uma interface de monitoramento.
+O último comando ainda informa que a interface em tempo real está em
+desenvolvimento. `status` e `processes` coletam duas amostras com intervalo de
+cerca de um segundo para calcular as taxas de CPU; mostram o resultado e encerram.
 
 ## Atalhos de teclado
 
@@ -64,25 +69,25 @@ teclado será documentada quando a interface for implementada.
 
 ## Plataformas suportadas
 
-Windows, Linux e macOS são as plataformas planejadas. O comportamento
-multiplataforma ainda não foi validado. É necessário Python 3.12+.
+Windows, Linux e macOS são as plataformas planejadas. Os comandos atuais foram
+executados no Windows; a validação em Linux e macOS ainda está pendente.
+É necessário Python 3.12+.
 
 ## Arquitetura
 
-O fluxo local planejado é: collectors tipados → serviço de amostragem → agregador
-de métricas → estado da aplicação → interface Textual e CLI. Um barramento interno
-de eventos dará suporte posterior a histórico, regras e alertas. Widgets não
-consultarão o `psutil` diretamente. Os componentes serão adicionados junto com
-comportamento funcional.
+O fluxo local atual é: collectors tipados → serviço de amostragem → agregador de
+métricas → estado da aplicação → CLI. A interface Textual e um barramento interno
+para futuro histórico, regras e alertas ainda estão planejados. Widgets não
+consultarão o `psutil` diretamente.
 
 A [metodologia de benchmark da varredura de processos](docs/pt-BR/benchmarking.md)
 registra como o custo do collector é medido durante o desenvolvimento.
 
 ## Privacidade e segurança
 
-O SystemPulse será local-first e inicialmente somente de leitura. Conta na nuvem,
-telemetria, rastreamento e API remota não fazem parte do projeto padrão. O comando
-atual de desenvolvimento não coleta nem transmite métricas do sistema.
+O SystemPulse é local-first e somente de leitura. Conta na nuvem, telemetria,
+rastreamento e API remota não fazem parte do projeto padrão. Os comandos atuais
+coletam métricas localmente e não as transmitem.
 
 ## Roadmap
 
