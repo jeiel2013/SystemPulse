@@ -12,7 +12,7 @@ from rich.text import Text
 
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
-from systempulse.presentation import format_bytes, format_percent
+from systempulse.presentation import format_bytes, format_percent, format_uptime
 from systempulse.services.monitor import create_default_session
 from systempulse.services.process_query import (
     ProcessQuery,
@@ -57,7 +57,7 @@ def version() -> None:
 
 @app.command()
 def status() -> None:
-    """Show a current CPU, memory, and process summary."""
+    """Show a current CPU, memory, process, and host summary."""
     snapshot = _sample()
     table = Table.grid(padding=(0, 2))
     table.add_column(style="bold")
@@ -68,6 +68,17 @@ def status() -> None:
     table.add_row("Memory", format_percent(memory.percent if memory else None))
     table.add_row(
         "Available memory", format_bytes(memory.available_bytes if memory else None)
+    )
+    system = snapshot.system
+    table.add_row(
+        "System",
+        f"{system.platform_name} {system.platform_release}".strip()
+        if system is not None
+        else "Unavailable",
+    )
+    table.add_row(
+        "Uptime",
+        format_uptime(system.boot_time if system else None, snapshot.created_at),
     )
     process_snapshot = snapshot.processes
     if process_snapshot and process_snapshot.processes:

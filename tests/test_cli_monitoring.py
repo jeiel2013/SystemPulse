@@ -8,7 +8,7 @@ from typer.testing import CliRunner
 
 from systempulse.cli import app
 from systempulse.domain.availability import Availability, CollectorStatus
-from systempulse.domain.metrics import CpuMetrics, MemoryMetrics
+from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import ProcessMetrics, ProcessSnapshot
 from systempulse.domain.snapshots import MetricSnapshot, SystemSnapshot
 from systempulse.presentation import format_bytes, format_percent
@@ -46,7 +46,11 @@ def observed_snapshot(monkeypatch: pytest.MonkeyPatch) -> SystemSnapshot:
         for name in ("cpu", "memory", "processes")
     )
     snapshot = SystemSnapshot(
-        at, MetricSnapshot(at, cpu, memory), processes, None, statuses
+        at,
+        MetricSnapshot(at, cpu, memory),
+        processes,
+        SystemMetrics(at, "Test OS", "1.0", "test64", "host", at),
+        statuses,
     )
     monkeypatch.setattr("systempulse.cli._sample", lambda: snapshot)
     return snapshot
@@ -62,6 +66,8 @@ def test_status_shows_measured_values_and_distinct_process_leaders(
     assert "50.0%" in result.stdout
     assert "Fast (PID 11)" in result.stdout
     assert "Heavy (PID 22)" in result.stdout
+    assert "Test OS 1.0" in result.stdout
+    assert "0h 0m" in result.stdout
 
 
 def test_processes_sort_filter_and_limit(observed_snapshot: SystemSnapshot) -> None:
@@ -85,6 +91,7 @@ def test_failed_collectors_do_not_invent_metrics(
         observed_snapshot,
         metrics=MetricSnapshot(at, None, None),
         processes=None,
+        system=None,
         collector_statuses=(CollectorStatus("cpu", Availability.ERROR, at, "OSError"),),
     )
     monkeypatch.setattr("systempulse.cli._sample", lambda: missing)
@@ -95,6 +102,7 @@ def test_failed_collectors_do_not_invent_metrics(
     assert status.exit_code == 0
     assert "Unavailable" in status.stdout
     assert "cpu (error)" in status.stdout
+    assert "Uptime" in status.stdout
     assert "Fast" not in status.stdout
     assert processes.exit_code == 1
     assert "Process metrics are unavailable." in processes.stdout
