@@ -30,6 +30,7 @@ from systempulse.services.process_query import (
 )
 from systempulse.tui.process_details import ProcessDetailsScreen
 from systempulse.tui.process_explorer import ProcessExplorer
+from systempulse.tui.themes import PULSE_DARK, PULSE_LIGHT
 
 _SPARK = "▁▂▃▄▅▆▇█"
 
@@ -55,6 +56,7 @@ class PulseApp(App[None]):
         ("1", "overview", "Overview"),
         ("2", "processes", "Processes"),
         ("3", "system", "System"),
+        ("t", "toggle_theme", "Theme"),
     ]
 
     def __init__(
@@ -102,6 +104,9 @@ class PulseApp(App[None]):
         yield Footer()
 
     def on_mount(self) -> None:
+        self.register_theme(PULSE_DARK)
+        self.register_theme(PULSE_LIGHT)
+        self.theme = PULSE_DARK.name
         table = self.query_one("#top-processes", DataTable)
         table.add_columns("PID", "PROCESS", "CPU", "MEMORY")
         self.query_one("#top-memory-processes", DataTable).add_columns(
@@ -133,6 +138,14 @@ class PulseApp(App[None]):
         """Open observed host and hardware information."""
         self.remove_class("show-processes")
         self.add_class("show-system")
+
+    def action_toggle_theme(self) -> None:
+        """Switch the active Textual palette and all theme-backed panel colors."""
+        self.theme = (
+            PULSE_LIGHT.name if self.theme == PULSE_DARK.name else PULSE_DARK.name
+        )
+        label = "Light" if self.theme == PULSE_LIGHT.name else "Dark"
+        self.notify(f"{label} theme active", timeout=2)
 
     def on_process_explorer_selected(self, event: ProcessExplorer.Selected) -> None:
         self.session.state.selected_process = event.process.identity

@@ -161,6 +161,32 @@ async def test_overview_orders_cpu_and_memory_leaders_independently() -> None:
 
 
 @pytest.mark.asyncio
+async def test_theme_shortcut_changes_screen_and_panel_colors() -> None:
+    app = PulseApp(session=FakeSession(_snapshot()))
+
+    async with app.run_test(size=(90, 28)) as pilot:
+        await pilot.pause()
+        assert app.theme == "pulse-dark"
+        dark_screen = app.screen.styles.background
+        dark_panel = app.query_one("#cpu-card", Static).styles.background
+
+        await pilot.press("t")
+        await pilot.pause()
+        assert app.theme == "pulse-light"
+        assert app.screen.styles.background != dark_screen
+        assert app.query_one("#cpu-card", Static).styles.background != dark_panel
+
+        await pilot.press("2")
+        assert app.query_one("#process-table", DataTable).styles.background == (
+            app.query_one("#cpu-card", Static).styles.background
+        )
+        await pilot.press("t")
+        await pilot.pause()
+        assert app.theme == "pulse-dark"
+        assert app.screen.styles.background == dark_screen
+
+
+@pytest.mark.asyncio
 async def test_process_navigation_opens_verified_details_and_returns() -> None:
     session = FakeSession(_snapshot())
     details_service = FakeDetailsService()
@@ -173,8 +199,9 @@ async def test_process_navigation_opens_verified_details_and_returns() -> None:
         assert app.query_one(ProcessExplorer).query_one(DataTable).row_count == 1
 
         await pilot.press("/")
-        await pilot.press("q", "2", "r", "m")
-        assert app.query_one("#process-search", Input).value == "q2rm"
+        await pilot.press("q", "2", "r", "m", "t")
+        assert app.query_one("#process-search", Input).value == "q2rmt"
+        assert app.theme == "pulse-dark"
         await pilot.press("escape")
         assert app.focused is app.query_one("#process-table", DataTable)
         app.query_one("#process-search", Input).value = ""

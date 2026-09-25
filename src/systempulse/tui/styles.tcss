@@ -1,16 +1,16 @@
 Screen {
-    background: #111827;
-    color: #e5e7eb;
+    background: $background;
+    color: $foreground;
 }
 
 Header {
-    background: #172335;
-    color: #e5e7eb;
+    background: $panel;
+    color: $foreground;
 }
 
 Footer {
-    background: #172335;
-    color: #cbd5e1;
+    background: $panel;
+    color: $foreground;
 }
 
 #body {
@@ -21,7 +21,7 @@ Footer {
 
 #status-line {
     height: 2;
-    color: #7dd3fc;
+    color: $text-primary;
     text-style: bold;
 }
 
@@ -34,9 +34,9 @@ Footer {
 .metric-card {
     width: 1fr;
     height: 8;
-    border: round #334155;
-    background: #1b293b;
-    color: #e5e7eb;
+    border: round $primary 45%;
+    background: $surface;
+    color: $foreground;
     padding: 1 2;
     margin-right: 1;
     text-style: bold;
@@ -45,29 +45,29 @@ Footer {
 #cpu-history {
     height: 5;
     margin-top: 1;
-    border: round #334155;
-    background: #1b293b;
+    border: round $primary 45%;
+    background: $surface;
     padding: 1 2;
-    color: #93c5fd;
+    color: $text-secondary;
 }
 
 #process-heading, #memory-process-heading {
     height: 2;
     margin-top: 1;
-    color: #e5e7eb;
+    color: $foreground;
     text-style: bold;
 }
 
 #top-processes, #top-memory-processes {
     height: 13;
-    border: round #334155;
-    background: #1b293b;
+    border: round $primary 45%;
+    background: $surface;
 }
 
 #collector-line {
     height: 2;
     margin-top: 1;
-    color: #94a3b8;
+    color: $text-muted;
 }
 
 .compact #body {
@@ -159,7 +159,7 @@ Footer {
 
 #system-heading {
     height: 2;
-    color: #7dd3fc;
+    color: $text-primary;
     text-style: bold;
 }
 
@@ -167,8 +167,8 @@ Footer {
     width: 100%;
     height: auto;
     min-height: 5;
-    border: round #334155;
-    background: #1b293b;
+    border: round $primary 45%;
+    background: $surface;
     padding: 1 2;
     margin-bottom: 1;
 }
@@ -179,7 +179,7 @@ Footer {
 
 #process-explorer-heading {
     height: 2;
-    color: #7dd3fc;
+    color: $text-primary;
     text-style: bold;
 }
 
@@ -191,13 +191,13 @@ Footer {
 #process-table {
     width: 100%;
     height: 1fr;
-    border: round #334155;
-    background: #1b293b;
+    border: round $primary 45%;
+    background: $surface;
 }
 
 #process-explorer-hint {
     height: 2;
-    color: #94a3b8;
+    color: $text-muted;
 }
 
 .compact #process-explorer {
@@ -206,7 +206,7 @@ Footer {
 
 ProcessDetailsScreen {
     align: center middle;
-    background: #000000 60%;
+    background: $background 75%;
 }
 
 #detail-dialog {
@@ -214,14 +214,14 @@ ProcessDetailsScreen {
     max-width: 90;
     height: 80%;
     max-height: 22;
-    border: round #7dd3fc;
-    background: #1b293b;
+    border: round $primary;
+    background: $surface;
     padding: 1 2;
 }
 
 #detail-heading {
     height: 2;
-    color: #7dd3fc;
+    color: $text-primary;
     text-style: bold;
 }
 
@@ -231,5 +231,5 @@ ProcessDetailsScreen {
 
 #detail-hint {
     height: 1;
-    color: #94a3b8;
+    color: $text-muted;
 }
