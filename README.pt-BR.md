@@ -98,6 +98,11 @@ Esses comandos encerram após mostrar o resultado.
 | `r` | Atualizar todos os collectors |
 | `q` / `Ctrl+C` | Sair (`q` primeiro fecha os detalhes) |
 
+O SystemPulse adapta os dois temas à capacidade de cores informada pelo terminal.
+No Linux, `systempulse doctor` mostra o modo detectado. Se o terminal suporta
+truecolor, mas informa menos cores, execute
+`TEXTUAL_COLOR_SYSTEM=truecolor systempulse` para usar a paleta completa.
+
 ## Estado atual
 
 A TUI e a CLI foram executadas no Windows. Linux e macOS são plataformas alvo;

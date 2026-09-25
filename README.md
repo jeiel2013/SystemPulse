@@ -97,6 +97,11 @@ These commands exit after printing their result.
 | `r` | Refresh all collectors |
 | `q` / `Ctrl+C` | Quit (`q` closes process details first) |
 
+SystemPulse adapts both themes to the terminal's reported color support. On
+Linux, `systempulse doctor` shows the detected color mode. If your terminal
+supports truecolor but reports fewer colors, run
+`TEXTUAL_COLOR_SYSTEM=truecolor systempulse` to use the full palette.
+
 ## Current scope
 
 The TUI and CLI have been run on Windows. Linux and macOS are target platforms;

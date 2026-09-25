@@ -30,7 +30,7 @@ from systempulse.services.process_query import (
 )
 from systempulse.tui.process_details import ProcessDetailsScreen
 from systempulse.tui.process_explorer import ProcessExplorer
-from systempulse.tui.themes import PULSE_DARK, PULSE_LIGHT
+from systempulse.tui.themes import PULSE_DARK, PULSE_LIGHT, themes_for_color_system
 
 _SPARK = "▁▂▃▄▅▆▇█"
 
@@ -104,8 +104,8 @@ class PulseApp(App[None]):
         yield Footer()
 
     def on_mount(self) -> None:
-        self.register_theme(PULSE_DARK)
-        self.register_theme(PULSE_LIGHT)
+        for theme in themes_for_color_system(self.console.color_system):
+            self.register_theme(theme)
         self.theme = PULSE_DARK.name
         table = self.query_one("#top-processes", DataTable)
         table.add_columns("PID", "PROCESS", "CPU", "MEMORY")

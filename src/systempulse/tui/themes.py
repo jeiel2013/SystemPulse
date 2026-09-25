@@ -1,4 +1,6 @@
-"""Two restrained terminal palettes for the same SystemPulse layout."""
+"""SystemPulse palettes for truecolor and terminals with fewer colors."""
+
+from dataclasses import replace
 
 from textual.theme import Theme
 
@@ -31,3 +33,29 @@ PULSE_LIGHT = Theme(
     success="#166534",
     dark=False,
 )
+
+# Use colors that survive Rich's 256-color conversion for the main surfaces.
+# Otherwise the dark navy background becomes black while its panels become
+# bright blue, and the light background loses its separation from white cards.
+PULSE_DARK_256 = replace(
+    PULSE_DARK,
+    foreground="#e4e4e4",
+    background="#1c1c1c",
+    surface="#262626",
+    panel="#303030",
+)
+
+PULSE_LIGHT_256 = replace(
+    PULSE_LIGHT,
+    foreground="#262626",
+    background="#eeeeee",
+    surface="#ffffff",
+    panel="#d7d7d7",
+)
+
+
+def themes_for_color_system(color_system: str | None) -> tuple[Theme, Theme]:
+    """Keep surfaces distinct when the terminal cannot show truecolor."""
+    if color_system == "truecolor":
+        return PULSE_DARK, PULSE_LIGHT
+    return PULSE_DARK_256, PULSE_LIGHT_256

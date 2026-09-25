@@ -5,7 +5,9 @@ from datetime import UTC, datetime
 from io import StringIO
 
 import pytest
+from rich.color import Color, ColorSystem
 from rich.console import Console
+from textual import constants
 from textual.containers import VerticalScroll
 from textual.widgets import DataTable, Input, Static
 
@@ -198,6 +200,31 @@ async def test_theme_shortcut_changes_screen_and_panel_colors() -> None:
         await pilot.pause()
         assert app.theme == "pulse-dark"
         assert app.screen.styles.background == dark_screen
+
+
+@pytest.mark.asyncio
+async def test_256_color_terminal_keeps_theme_surfaces_distinct(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(constants, "COLOR_SYSTEM", "256")
+    app = PulseApp(session=FakeSession(_snapshot()))
+
+    async with app.run_test(size=(90, 28)) as pilot:
+        await pilot.pause()
+        assert app.console.color_system == "256"
+        for expected_theme in ("pulse-dark", "pulse-light"):
+            assert app.theme == expected_theme
+            theme = app.current_theme
+            surfaces = (theme.background, theme.surface, theme.panel)
+            assert all(color is not None for color in surfaces)
+            color_indexes = {
+                Color.parse(color).downgrade(ColorSystem.EIGHT_BIT).number
+                for color in surfaces
+                if color is not None
+            }
+            assert len(color_indexes) == 3
+            await pilot.press("t")
+            await pilot.pause()
 
 
 @pytest.mark.asyncio
