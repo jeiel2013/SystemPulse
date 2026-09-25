@@ -23,6 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "psutil>=7.2,<8",
+    "rich>=15,<16",
     "typer>=0.24,<1",
 ]
 
