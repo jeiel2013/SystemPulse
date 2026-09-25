@@ -2,153 +2,89 @@
 
 # SystemPulse
 
-**Monitoramento e diagnóstico de sistema em tempo real, open source, para Windows, Linux e macOS.**
+**Saiba o que seu computador está fazendo sem sair do terminal.**
 
-Saiba o que seu computador está fazendo sem sair do terminal.
+O SystemPulse é um monitor de sistema open source, local e somente de leitura.
+Ele mostra CPU, memória, processos e métricas de GPU disponíveis em uma interface
+de terminal controlada pelo teclado. Não há dashboard web, conta ou telemetria.
+Diagnósticos baseados em evidências e alertas estão planejados; hoje, `doctor`
+verifica o próprio SystemPulse.
 
-> **Estado do desenvolvimento:** a visão Textual em tempo real, o explorador
-> interativo de processos, a visão System e os comandos atuais funcionam a partir
-> de uma cópia do código. Não há versão publicada no PyPI.
+> **Versão de desenvolvimento:** execute a partir de uma cópia do repositório.
+> O projeto ainda não foi publicado no PyPI. O nome planejado da distribuição é
+> `systempulse-monitor`; o comando instalado será `systempulse`.
 
-O SystemPulse foi concebido como uma aplicação local e inicialmente somente de
-leitura. Seus três princípios são **Measure. Understand. Inform.** Observações e
-diagnósticos futuros deverão se apoiar em métricas observáveis; a aplicação não
-afirmará causalidade sem evidências.
+## Como executar
 
-## Capturas de tela e gravações do terminal
-
-Ainda não existem. Gravações estão planejadas antes da primeira versão.
-
-## Funcionalidades
-
-Disponíveis agora:
-
-- Pacote Python instalável com o comando `systempulse`.
-- `systempulse` abre uma visão em tempo real com CPU, memória, atividade recente
-  da CPU, métricas opcionais da GPU e listas separadas de Top CPU e Top RAM.
-- A visão Processes oferece busca em tempo real, ordenação por CPU, memória ou
-  PID, seleção por teclado e detalhes verificados do processo selecionado.
-  Campos bloqueados pelo sistema operacional são marcados como indisponíveis.
-- A visão System mostra informações observadas do host, hardware de CPU, memória
-  e GPUs disponíveis, incluindo uptime quando o horário de inicialização existe.
-- Temas escuro e claro mudam imediatamente com `t` durante a sessão atual.
-- `systempulse version` informa a versão do pacote instalado.
-- `systempulse status` mostra CPU, memória, uptime, métricas opcionais da GPU e
-  processos de maior consumo.
-- `systempulse processes` lista processos com ordenação por CPU ou memória, busca
-  pelo nome e limite de linhas. Campos indisponíveis aparecem identificados.
-- `systempulse doctor` verifica o Python, a plataforma alvo, os collectors
-  incluídos, o provider de GPU e as capacidades do terminal. Falha de collector
-  essencial retorna código diferente de zero; GPU indisponível ou ausência de
-  terminal interativo geram aviso.
-
-A meta restante para v0.1 inclui o comando `top` e validação mais ampla entre
-plataformas. Essas etapas ainda estão planejadas.
-
-## Instalação
-
-Esta versão de desenvolvimento, ainda não publicada, requer Python 3.12+ e
-[uv](https://docs.astral.sh/uv/). Em uma cópia do repositório:
+Requer Python 3.12+ e [uv](https://docs.astral.sh/uv/). Na pasta do projeto:
 
 ```sh
 uv sync
+uv run systempulse
 ```
 
-O nome planejado para a distribuição é `systempulse-monitor`, mantendo
-`systempulse` como comando instalado. Após a publicação, a instalação pretendida
-será `pipx install systempulse-monitor`. O nome de distribuição `systempulse` no
-PyPI pertence a outro projeto.
+O segundo comando abre a TUI em um terminal interativo. A experiência padrão
+dispensa configuração e permissões elevadas.
 
-## Uso
+## O que é exibido
+
+- **Overview:** CPU e RAM em tempo real, gráfico recente de CPU, carga/VRAM/
+  temperatura opcionais da GPU e listas separadas de Top CPU e Top RAM.
+- **Processes:** busca, ordenação por CPU, memória ou PID e detalhes verificados
+  do processo selecionado. Campos protegidos aparecem como indisponíveis.
+- **System:** sistema operacional, uptime, informações de CPU e memória e todas
+  as GPUs informadas pelo provider ativo.
+
+As métricas de GPU exigem atualmente o `nvidia-smi` da NVIDIA. Sem ele, o
+SystemPulse continua funcionando e marca a GPU como indisponível. Providers AMD
+e Intel ainda não foram implementados. Veja a [coleta de GPU](docs/pt-BR/gpu.md).
+
+## Outros comandos
 
 ```sh
-uv run systempulse
-uv run systempulse version
 uv run systempulse status
 uv run systempulse processes --sort memory --limit 10
 uv run systempulse processes --search python
 uv run systempulse doctor
+uv run systempulse version
 ```
 
-O primeiro comando requer um terminal interativo. `status`, `processes` e
-`doctor` coletam duas amostras com intervalo de cerca de um segundo para calcular
-as taxas de CPU; mostram o resultado e encerram.
+`status` mostra um snapshot do sistema. `processes` lista processos com filtros.
+`doctor` verifica o ambiente, os collectors, o provider de GPU e o terminal.
+Esses comandos encerram após mostrar o resultado.
 
 ## Atalhos de teclado
 
 | Tecla | Ação |
 | --- | --- |
-| `q`, `Ctrl+C` | Sair |
-| `r` | Solicitar uma atualização completa |
-| `1` | Abrir Overview |
-| `2` | Abrir Processes |
-| `3` | Abrir System |
-| `t` | Alternar entre os temas escuro e claro |
-| `PageUp`, `PageDown` | Rolar os painéis de Overview em um terminal baixo |
-| `/` | Focar a busca de processos em Processes |
-| `c`, `m`, `p` | Ordenar processos por CPU, memória ou PID |
-| `Enter` | Abrir os detalhes do processo selecionado |
-| `Esc` | Voltar da busca para a tabela ou fechar os detalhes |
+| `1` / `2` / `3` | Overview / Processes / System |
+| `/` | Buscar processos |
+| `c` / `m` / `p` | Ordenar por CPU / memória / PID |
+| `Enter` | Voltar da busca para a tabela ou abrir o processo selecionado |
+| `Esc` | Sair da busca ou fechar os detalhes do processo |
+| `PageUp` / `PageDown` | Rolar Overview em um terminal baixo |
+| `t` | Alternar tema claro/escuro nesta sessão |
+| `r` | Atualizar todos os collectors |
+| `q` / `Ctrl+C` | Sair (`q` primeiro fecha os detalhes) |
 
-Digite um termo para filtrar nomes de processos. Pressione `Enter` no campo de
-busca para voltar à tabela. Com os detalhes abertos, `q` fecha essa visão.
+## Estado atual
 
-## Plataformas suportadas
+A TUI e a CLI foram executadas no Windows. Linux e macOS são plataformas alvo;
+a validação nelas ainda está pendente. Disco, rede, histórico, alertas e o
+comando contínuo `top` ainda não foram implementados. CI multiplataforma e `top`
+são os próximos passos.
 
-Windows, Linux e macOS são as plataformas planejadas. Os comandos e a TUI foram
-executados no Windows; a validação em Linux e macOS ainda está pendente.
-É necessário Python 3.12+. A visão pode ser rolada verticalmente quando o terminal
-não comporta todos os painéis de uma vez.
-
-Carga da GPU, uso de VRAM e temperatura utilizam atualmente um provider NVIDIA
-opcional baseado em `nvidia-smi`. Em máquinas sem essa ferramenta, as métricas da
-GPU aparecem como indisponíveis; providers AMD e Intel ainda não foram
-implementados. Alguns drivers ou dispositivos NVIDIA podem omitir leituras
-individuais. Consulte o [guia do collector de GPU](docs/pt-BR/gpu.md).
-
-## Arquitetura
-
-O fluxo local atual é: collectors tipados → serviço de amostragem → agregador de
-métricas → estado da aplicação → interface Textual e CLI. Os collectors executam
-fora do loop de eventos da TUI e possuem intervalos de coleta independentes. Um
-barramento interno para futuro histórico, regras e alertas ainda está planejado.
-Widgets não consultam o `psutil` diretamente. Informações do host são coletadas
-uma vez por minuto. Os detalhes de um processo são lidos sob demanda após
-verificar sua identidade pelo PID e horário de criação. O provider de GPU coleta
-a cada dois segundos e não bloqueia os widgets.
-
-A [metodologia de benchmark da varredura de processos](docs/pt-BR/benchmarking.md)
-registra como o custo do collector é medido durante o desenvolvimento.
-
-## Privacidade e segurança
-
-O SystemPulse é local-first e somente de leitura. Conta na nuvem, telemetria,
-rastreamento e API remota não fazem parte do projeto padrão. Os comandos atuais
-coletam métricas localmente e não as transmitem.
-
-## Roadmap
-
-| Versão | Foco planejado |
-| --- | --- |
-| v0.1 | CPU, memória, processos, TUI em tempo real, CLI básica |
-| v0.2 | Disco, rede, árvore de processos |
-| v0.3 | Histórico SQLite, gráficos no terminal, relatórios |
-| v0.4 | Regras, alertas, observações fundamentadas em evidências |
-| v0.5 | Mais providers de GPU, bateria, sensores |
-| v1.0 | Suporte multiplataforma estável e API de plugins documentada |
+Collectors tipados alimentam o estado da aplicação, que abastece Textual e a
+CLI. A coleta executa fora do loop da interface. As métricas permanecem na
+máquina e o SystemPulse não realiza ações destrutivas. Consulte o
+[benchmark da varredura de processos](docs/pt-BR/benchmarking.md) para a
+metodologia atual de medição.
 
 ## Contribuição
 
-Contribuições seguirão código-fonte em inglês e documentação criada primeiro em
-inglês, com documentação pt-BR equivalente para funcionalidades públicas. O guia
-de contribuição e os modelos de issues serão adicionados antes da v0.1. Por
-enquanto, execute `uv run pytest`, `uv run ruff check .` e `uv run mypy` antes
-de propor alterações.
+Execute `uv run pytest`, `uv run ruff check .` e `uv run mypy` antes de propor
+alterações. Código e documentação principal são escritos em inglês; a
+documentação pública também possui versão pt-BR. Em caso de divergência,
+prevalece a versão inglesa.
 
-## Licença
-
-O SystemPulse está licenciado sob a [Apache License 2.0](LICENSE).
-
-A documentação em inglês é a fonte principal. A documentação em português é
-mantida como tradução correspondente; quando houver divergência, prevalece a
-versão em inglês.
+Licenciado sob [Apache 2.0](LICENSE).
