@@ -12,8 +12,15 @@ from systempulse.services.metrics import MetricService
 
 
 class StubCollector:
-    def __init__(self, name: str, *, available: bool = True, fails: bool = False):
-        self.metadata = CollectorMetadata(name, timedelta(seconds=1))
+    def __init__(
+        self,
+        name: str,
+        *,
+        available: bool = True,
+        fails: bool = False,
+        interval: int = 1,
+    ):
+        self.metadata = CollectorMetadata(name, timedelta(seconds=interval))
         self.available = available
         self.fails = fails
         self.calls = 0
@@ -90,3 +97,32 @@ def test_registry_rejects_duplicate_names_and_can_disable() -> None:
 
     registry.set_enabled("cpu", False)
     assert registry.entries()[0].enabled is False
+
+
+@pytest.mark.asyncio
+async def test_due_collection_respects_intervals_and_enablement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fast = StubCollector("fast")
+    slow = StubCollector("slow", interval=2)
+    registry = CollectorRegistry()
+    registry.register(fast)
+    registry.register(slow)
+    service = MetricService(registry)
+    times = iter([10.0, 10.5, 11.0, 11.5, 12.0])
+    monkeypatch.setattr("systempulse.services.metrics.monotonic", lambda: next(times))
+
+    first = await service.collect_due()
+    second = await service.collect_due()
+    third = await service.collect_due()
+    registry.set_enabled("slow", False)
+    disabled = await service.collect_due()
+    registry.set_enabled("slow", True)
+    reenabled = await service.collect_due()
+
+    assert [fast.calls, slow.calls] == [3, 2]
+    assert [result.metric for result in first] == [1, 1]
+    assert [result.metric for result in second] == [1, 1]
+    assert [result.metric for result in third] == [2, 1]
+    assert disabled[1].status.availability == Availability.DISABLED
+    assert reenabled[1].status.availability == Availability.AVAILABLE

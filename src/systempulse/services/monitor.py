@@ -28,6 +28,13 @@ class MonitorSession:
         self.state.update(snapshot)
         return snapshot
 
+    async def sample_due(self) -> SystemSnapshot:
+        """Publish a cycle while respecting each collector's interval."""
+        results = await self._metrics.collect_due()
+        snapshot = self._aggregator.aggregate(results)
+        self.state.update(snapshot)
+        return snapshot
+
     async def sample_after_warmup(self, delay_seconds: float = 1.0) -> SystemSnapshot:
         """Take two samples so CPU rates have an observed time interval."""
         if delay_seconds <= 0:
