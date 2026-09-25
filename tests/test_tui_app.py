@@ -92,6 +92,7 @@ async def test_unavailable_metrics_have_an_explicit_empty_state() -> None:
         assert "Unavailable" in str(app.query_one("#cpu-card", Static).render())
         assert app.query_one("#top-processes", DataTable).row_count == 0
         assert "error" in str(app.query_one("#collector-line", Static).render())
+        await pilot.press("ctrl+c")
 
 
 def test_sparkline_preserves_missing_observations() -> None:

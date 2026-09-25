@@ -6,8 +6,9 @@
 
 Know what your computer is doing, without leaving your terminal.
 
-> **Development status:** One-shot CPU, memory, and process commands now work from
-> a source checkout. The real-time Textual interface is still in development.
+> **Development status:** A live Textual overview and one-shot CLI commands now
+> work from a source checkout. The interactive process explorer is still in
+> development.
 > No release of this project has been published to PyPI.
 
 SystemPulse is designed as a local, read-only terminal application. Its three guiding
@@ -24,13 +25,15 @@ None yet. Recordings will be added when the terminal interface is functional.
 Currently available:
 
 - Installable Python package with a `systempulse` command.
+- `systempulse` opens a live overview with CPU, memory, recent CPU activity, and
+  leading CPU processes in an interactive terminal.
 - `systempulse version` reports the installed package version.
 - `systempulse status` shows current CPU, memory, and leading processes.
 - `systempulse processes` lists processes with CPU and memory sorting, name search,
   and a row limit. Unavailable process fields are labeled explicitly.
 
-The v0.1 target also includes a live process explorer, recent terminal charts,
-system information, and `top` and `doctor` commands. These remain planned.
+The v0.1 target also includes an interactive process explorer, system information,
+and `top` and `doctor` commands. These remain planned.
 
 ## Installation
 
@@ -49,34 +52,40 @@ belongs to a separate project.
 ## Usage
 
 ```sh
+uv run systempulse
 uv run systempulse version
 uv run systempulse status
 uv run systempulse processes --sort memory --limit 10
 uv run systempulse processes --search python
-uv run systempulse
 ```
 
-The last command currently reports that the live terminal interface is under
-development. `status` and `processes` take two samples about one second apart to
-calculate CPU rates; they return a one-shot view and then exit.
+The first command requires an interactive terminal. `status` and `processes` take
+two samples about one second apart to calculate CPU rates; they return a one-shot
+view and then exit.
 
 ## Keyboard shortcuts
 
-There are no TUI shortcuts in this development build. Keyboard navigation will be
-documented when the interface is implemented.
+| Key | Action |
+| --- | --- |
+| `q`, `Ctrl+C` | Quit |
+| `r` | Request a full refresh |
+
+More navigation will arrive with the process explorer.
 
 ## Supported platforms
 
-Windows, Linux, and macOS are planned targets. The current commands have been
+Windows, Linux, and macOS are planned targets. The commands and TUI have been
 executed on Windows; Linux and macOS validation is still pending. Python 3.12+
-is required.
+is required. The overview scrolls vertically when the terminal is too small to
+show every panel at once.
 
 ## Architecture
 
 The current local pipeline is: typed collectors → sampling service → metric
-aggregator → application state → CLI. The Textual interface and an internal event
-bus for later history, rules, and alerts are planned. Widgets will not call
-`psutil` directly.
+aggregator → application state → Textual interface and CLI. Collectors run outside
+the TUI event loop and have independent sampling intervals. An internal event bus
+for later history, rules, and alerts is planned. Widgets do not call `psutil`
+directly.
 
 The [process scan benchmark methodology](docs/en/benchmarking.md) records how
 collector cost is measured during development.
