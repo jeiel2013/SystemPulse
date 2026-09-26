@@ -49,7 +49,14 @@ console = Console()
 
 def _sample() -> SystemSnapshot:
     """Observe two cycles to calculate nonblocking CPU rates."""
-    return asyncio.run(create_default_session().sample_after_warmup())
+    async def observe() -> SystemSnapshot:
+        session = create_default_session()
+        try:
+            return await session.sample_after_warmup()
+        finally:
+            await session.close()
+
+    return asyncio.run(observe())
 
 
 @app.callback(invoke_without_command=True)
@@ -248,14 +255,19 @@ def top(
     if not sys.stdin.isatty() or not sys.stdout.isatty():
         typer.echo("SystemPulse top needs an interactive terminal.", err=True)
         raise typer.Exit(code=1)
-    with suppress(KeyboardInterrupt):
-        asyncio.run(
-            run_top(
-                create_default_session(),
+    async def monitor() -> None:
+        session = create_default_session()
+        try:
+            await run_top(
+                session,
                 console,
                 ProcessQuery(sort=sort, search=search or "", limit=limit),
             )
-        )
+        finally:
+            await session.close()
+
+    with suppress(KeyboardInterrupt):
+        asyncio.run(monitor())
 
 
 @app.command()
