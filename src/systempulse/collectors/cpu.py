@@ -85,8 +85,9 @@ class CpuCollector:
                 )
             )
 
+        frequency_reader = getattr(psutil, "cpu_freq", None)
         try:
-            frequency = psutil.cpu_freq()
+            frequency = frequency_reader() if frequency_reader is not None else None
         except (OSError, psutil.Error, NotImplementedError):
             frequency = None
         metric = CpuMetrics(
