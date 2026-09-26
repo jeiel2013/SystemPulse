@@ -70,9 +70,10 @@ configuration or elevated permissions are needed for the default experience.
 - **Alerts:** local CPU, memory, and disk threshold rules require continuous
   evidence before triggering. Dismissed and resolved alerts remain visible.
 
-GPU readings currently require NVIDIA's `nvidia-smi`. Without it, SystemPulse
-continues running and marks GPU metrics unavailable. AMD and Intel providers
-are not implemented yet. Battery and sensor availability depends on the host.
+GPU readings use installed `nvidia-smi`, `rocm-smi`, or `xpu-smi` tools. Without a
+supported source, SystemPulse marks GPU metrics unavailable. AMD and Intel
+providers still need validation on physical hardware. Battery and sensor
+availability depends on the host.
 See [GPU collection](docs/en/gpu.md) and [hardware sources](docs/en/hardware.md).
 
 ## Other commands

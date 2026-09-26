@@ -74,10 +74,11 @@ A experiência padrão dispensa configuração e permissões elevadas.
 - **Alerts:** regras locais para CPU, memória e disco exigem evidência contínua
   antes de disparar. Alertas dispensados e resolvidos continuam visíveis.
 
-As métricas de GPU exigem atualmente o `nvidia-smi` da NVIDIA. Sem ele, o
-SystemPulse continua funcionando e marca a GPU como indisponível. Providers AMD
-e Intel ainda não foram implementados. A disponibilidade de bateria e sensores
-depende do host. Veja a [coleta de GPU](docs/pt-BR/gpu.md) e as
+As métricas de GPU usam as ferramentas instaladas `nvidia-smi`, `rocm-smi` ou
+`xpu-smi`. Sem uma fonte compatível, o SystemPulse marca a GPU como
+indisponível. Os providers AMD e Intel ainda precisam de validação em hardware
+real. A disponibilidade de bateria e sensores depende do host. Veja a
+[coleta de GPU](docs/pt-BR/gpu.md) e as
 [fontes de hardware](docs/pt-BR/hardware.md).
 
 ## Outros comandos

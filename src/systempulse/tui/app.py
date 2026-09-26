@@ -556,7 +556,9 @@ class PulseApp(App[None]):
             if status is None:
                 message = "Waiting for GPU provider"
             elif status.availability == Availability.UNAVAILABLE:
-                message = "GPU metrics unavailable. NVIDIA nvidia-smi is supported."
+                message = (
+                    "GPU metrics unavailable. Supported: nvidia-smi, rocm-smi, xpu-smi."
+                )
             else:
                 message = f"GPU metrics {status.availability.value}"
                 if status.reason:

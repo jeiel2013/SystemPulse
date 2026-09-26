@@ -1,34 +1,30 @@
 # Coleta de GPU
 
-O SystemPulse lê atualmente utilização da GPU, VRAM usada e total, e temperatura
-de dispositivos NVIDIA por meio do `nvidia-smi`. O provider é opcional: o restante
-do monitor funciona quando não existe uma fonte de GPU suportada. Providers AMD e
-Intel estão planejados, mas ainda não foram implementados.
+[English](../en/gpu.md) | [Português Brasileiro](gpu.md)
 
-O provider executa uma consulta CSV fixa e somente de leitura a cada dois
-segundos, sem shell, com limite de espera de dois segundos. Valores que o driver
-não fornece permanecem indisponíveis no SystemPulse. A VRAM informada em MiB é
-convertida para bytes no modelo central e formatada na apresentação. A
-[documentação do NVIDIA System Management Interface](https://docs.nvidia.com/deploy/nvidia-smi/)
-descreve a consulta e a disponibilidade dos campos do dispositivo.
+O SystemPulse lê carga da GPU, VRAM usada e total e temperatura por meio de
+ferramentas instaladas dos fabricantes, quando esses dados são expostos:
 
-A visão Overview mostra carga, VRAM usada e temperatura da primeira GPU
-informada. A visão System lista todas as GPUs informadas, incluindo nome e VRAM
-total. `systempulse status` resume a primeira GPU e indica quando existem outros
-dispositivos. Essas leituras pertencem ao dispositivo; o SystemPulse ainda não
-atribui uso de VRAM a processos individuais.
+| Fonte | Ferramenta | Formato |
+| --- | --- | --- |
+| NVIDIA | `nvidia-smi` | consulta CSV fixa |
+| AMD ROCm | `rocm-smi` | consulta JSON fixa |
+| Intel XPU Manager | `xpu-smi` | consulta CSV fixa |
 
-Se `nvidia-smi` não estiver disponível, o collector de GPU será marcado como
-indisponível. Uma falha do driver ou um timeout não interrompe a coleta de CPU,
-memória e processos. `systempulse doctor` apresenta a saúde do provider de GPU
-como verificação opcional. Nenhuma métrica de GPU sai da máquina.
+Cada consulta é somente de leitura, não utiliza shell e tem timeout de dois
+segundos. Campos ausentes permanecem indisponíveis. Valores de memória da
+NVIDIA e da Intel são convertidos de MiB para bytes; o ROCm da AMD informa
+bytes. Uma fonte com falha não oculta leituras retornadas por outra. A coleta
+ocorre a cada dois segundos e é opcional; dispositivos sem suporte não
+interrompem o monitoramento de CPU, RAM e processos.
 
-Para conferir o suporte local, execute:
+A visão Overview resume a primeira GPU detectada. A visão System lista todos
+os dispositivos informados; `systempulse status` indica quando há mais de um.
+São leituras do dispositivo. O SystemPulse não atribui VRAM a processos
+individuais. O suporte AMD exige uma instalação ROCm compatível; o suporte
+Intel exige XPU Manager. A validação em hardware desses providers ainda está
+pendente.
 
-```sh
-uv run systempulse doctor
-uv run systempulse status
-uv run systempulse
-```
-
-Somente o último comando exige um terminal interativo.
+Referências: [NVIDIA SMI](https://docs.nvidia.com/deploy/nvidia-smi/),
+[ROCm SMI](https://rocm.docs.amd.com/projects/rocm_smi_lib/en/docs-6.1.0/python_usage.html),
+[Intel XPU Manager](https://intel.github.io/xpumanager/2.0/xpu-smi/overview.html).
