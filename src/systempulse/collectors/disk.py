@@ -1,5 +1,6 @@
 """Home-volume capacity and system-wide disk I/O rates."""
 
+import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from time import monotonic
@@ -11,20 +12,31 @@ from systempulse.domain.availability import Availability, CollectorStatus
 from systempulse.domain.io import DiskMetrics
 
 
+def home_mountpoint(home: Path) -> Path:
+    """Find the filesystem containing home, including a separately mounted /home."""
+    current = home.resolve()
+    while not os.path.ismount(current):
+        if current.parent == current:
+            break
+        current = current.parent
+    return current
+
+
 class DiskCollector:
     """Read disk usage and calculate rates only after a valid counter interval."""
 
     def __init__(self, sampling_interval: timedelta = timedelta(seconds=1)) -> None:
         self.metadata = CollectorMetadata("disk", sampling_interval)
         self._previous: tuple[float, int, int] | None = None
+        self._mountpoint: Path | None = None
 
     def is_available(self) -> bool:
         return True
 
     def collect(self) -> CollectionResult[DiskMetrics]:
-        mountpoint = Path.home().anchor
-        if not mountpoint:
-            mountpoint = "/"
+        if self._mountpoint is None:
+            self._mountpoint = home_mountpoint(Path.home())
+        mountpoint = str(self._mountpoint)
         usage = psutil.disk_usage(mountpoint)
         try:
             counters = psutil.disk_io_counters()

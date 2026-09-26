@@ -1,12 +1,25 @@
 """I/O rates are measured from counter deltas and survive missing sources."""
 
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-from systempulse.collectors.disk import DiskCollector
+from systempulse.collectors.disk import DiskCollector, home_mountpoint
 from systempulse.collectors.network import NetworkCollector
 from systempulse.domain.availability import Availability
+
+
+def test_home_mountpoint_uses_separate_home_filesystem(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mounted = Path.cwd() / "mounted"
+    monkeypatch.setattr(Path, "resolve", lambda self: self)
+    monkeypatch.setattr(
+        "systempulse.collectors.disk.os.path.ismount",
+        lambda path: str(path) == str(mounted),
+    )
+    assert home_mountpoint(mounted / "user") == mounted
 
 
 def test_disk_rate_needs_two_samples_and_recovers_after_reset(
