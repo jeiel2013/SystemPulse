@@ -65,6 +65,8 @@ configuration or elevated permissions are needed for the default experience.
   details. Restricted fields appear as unavailable.
 - **System:** operating system, uptime, CPU and memory information, and every
   GPU reported by the active provider.
+- **History:** local CPU, memory, disk, and network trends for 10 minutes through
+  30 days. The database stores metric summaries, not process names or commands.
 
 GPU readings currently require NVIDIA's `nvidia-smi`. Without it, SystemPulse
 continues running and marks GPU metrics unavailable. AMD and Intel providers
@@ -77,6 +79,7 @@ systempulse status
 systempulse top --sort memory --limit 10
 systempulse processes --sort memory --limit 10
 systempulse processes --search python
+systempulse history --range 1h
 systempulse doctor
 systempulse version
 ```
@@ -90,7 +93,8 @@ collectors, GPU provider, and terminal. The other commands exit after printing.
 
 | Key | Action |
 | --- | --- |
-| `1` / `2` / `3` | Overview / Processes / System |
+| `1` / `2` / `3` / `4` | Overview / Processes / System / History |
+| `h` | Cycle the History range |
 | `/` | Search processes |
 | `c` / `m` / `p` | Sort processes by CPU / memory / PID |
 | `Enter` | Return from search to the table, or open a selected process |
@@ -109,8 +113,9 @@ supports truecolor but reports fewer colors, run
 
 The TUI and CLI have been run on Windows. Linux and macOS are target platforms;
 their interactive validation is pending. CI is configured to run tests, package
-builds, and isolated tool-install checks on all three platforms. Persistent
-history and alerts are not implemented yet. See [release checks](docs/en/release.md).
+builds, and isolated tool-install checks on all three platforms. Alerts are
+not implemented yet. See [history storage](docs/en/history.md) and
+[release checks](docs/en/release.md).
 
 Typed collectors feed application state, then Textual and the CLI. Collection
 runs outside the UI loop. SystemPulse keeps metrics on the machine and does not

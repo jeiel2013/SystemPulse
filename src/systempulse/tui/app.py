@@ -7,6 +7,7 @@ from typing import ClassVar
 
 from rich.table import Table
 from rich.text import Text
+from sqlalchemy.exc import SQLAlchemyError
 from textual import events, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -15,6 +16,8 @@ from textual.widgets import DataTable, Footer, Header, Static
 
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
+from systempulse.history.ranges import HistoryRange
+from systempulse.history.store import HistoryPoint
 from systempulse.presentation import (
     format_bytes,
     format_percent,
@@ -44,6 +47,16 @@ def cpu_sparkline(values: tuple[float | None, ...]) -> str:
     )
 
 
+def history_sparkline(points: tuple[HistoryPoint, ...]) -> str:
+    """Fit observed CPU history into a terminal-width sparkline."""
+    if len(points) > 60:
+        indexes = (round(index * (len(points) - 1) / 59) for index in range(60))
+        values = tuple(points[index].cpu_percent for index in indexes)
+    else:
+        values = tuple(point.cpu_percent for point in points)
+    return cpu_sparkline(values)
+
+
 class PulseApp(App[None]):
     """Show current health, recent CPU activity, and leading processes."""
 
@@ -57,6 +70,8 @@ class PulseApp(App[None]):
         ("1", "overview", "Overview"),
         ("2", "processes", "Processes"),
         ("3", "system", "System"),
+        ("4", "history", "History"),
+        ("h", "history_range", "Range"),
         ("t", "toggle_theme", "Theme"),
     ]
 
@@ -69,6 +84,8 @@ class PulseApp(App[None]):
         self.session = session or create_default_session()
         self.details_service = details_service or ProcessDetailsService()
         self._refresh_requested = asyncio.Event()
+        self._history_range = HistoryRange.TEN_MINUTES
+        self._history_last = 0.0
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -113,6 +130,10 @@ class PulseApp(App[None]):
             yield Static("Waiting for system facts", id="host-facts")
             yield Static("Waiting for hardware metrics", id="hardware-facts")
             yield Static("Checking GPU provider", id="gpu-facts")
+        with VerticalScroll(id="history-view"):
+            yield Static("HISTORY · LOCAL METRICS", id="history-heading")
+            yield Static("Loading local history", id="history-chart")
+            yield Static("Press h to change range", id="history-hint")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -127,6 +148,10 @@ class PulseApp(App[None]):
         self.query_one("#body", VerticalScroll).focus()
         self._collect_loop()
 
+    async def on_unmount(self) -> None:
+        if isinstance(self.session, MonitorSession):
+            await self.session.close()
+
     def on_resize(self, event: events.Resize) -> None:
         self.set_class(event.size.width < 70, "compact")
         self.set_class(event.size.height < 30, "short")
@@ -140,18 +165,38 @@ class PulseApp(App[None]):
         """Return to the live system summary."""
         self.remove_class("show-processes")
         self.remove_class("show-system")
+        self.remove_class("show-history")
         self.query_one("#body", VerticalScroll).focus()
 
     def action_processes(self) -> None:
         """Open the keyboard-driven process explorer."""
         self.add_class("show-processes")
         self.remove_class("show-system")
+        self.remove_class("show-history")
         self.query_one(ProcessExplorer).focus_table()
 
     def action_system(self) -> None:
         """Open observed host and hardware information."""
         self.remove_class("show-processes")
         self.add_class("show-system")
+        self.remove_class("show-history")
+
+    def action_history(self) -> None:
+        """Open the local metric timeline."""
+        self.remove_class("show-processes")
+        self.remove_class("show-system")
+        self.add_class("show-history")
+        self.query_one("#history-view", VerticalScroll).focus()
+        self._load_history()
+
+    def action_history_range(self) -> None:
+        """Cycle through supported history windows in the history view."""
+        if not self.has_class("show-history"):
+            return
+        ranges = tuple(HistoryRange)
+        index = ranges.index(self._history_range)
+        self._history_range = ranges[(index + 1) % len(ranges)]
+        self._load_history()
 
     def action_toggle_theme(self) -> None:
         """Switch the active Textual palette and all theme-backed panel colors."""
@@ -177,11 +222,54 @@ class PulseApp(App[None]):
                 snapshot = await self.session.sample_due()
             if not isinstance(self.screen, ProcessDetailsScreen):
                 self._render_snapshot(snapshot)
+            if self.has_class("show-history") and monotonic() - self._history_last >= 5:
+                self._load_history()
             remaining = max(0.0, 1.0 - (monotonic() - started_at))
             with suppress(TimeoutError):
                 await asyncio.wait_for(
                     self._refresh_requested.wait(), timeout=remaining
                 )
+
+    @work(exclusive=True, group="history")
+    async def _load_history(self) -> None:
+        """Read SQLite outside the UI loop and render only the active history view."""
+        self._history_last = monotonic()
+        store = (
+            self.session.history_store
+            if isinstance(self.session, MonitorSession)
+            else None
+        )
+        if store is None:
+            self.query_one("#history-chart", Static).update("No historical data yet.")
+            return
+        try:
+            points = await asyncio.to_thread(store.query, self._history_range.duration)
+        except (OSError, SQLAlchemyError) as error:
+            self.query_one("#history-chart", Static).update(
+                f"History unavailable ({type(error).__name__})."
+            )
+            return
+        if not self.has_class("show-history"):
+            return
+        if not points:
+            content = (
+                "No historical data yet. Keep SystemPulse running to collect samples."
+            )
+        else:
+            latest = points[-1]
+            content = (
+                f"CPU · {history_sparkline(points)}\n"
+                f"Latest CPU {format_percent(latest.cpu_percent)} · "
+                f"RAM {format_percent(latest.memory_percent)} · "
+                f"Disk {format_percent(latest.disk_percent)}\n"
+                f"Network ↓ {format_rate(latest.download_bytes_per_second)} · "
+                f"↑ {format_rate(latest.upload_bytes_per_second)}\n"
+                f"{len(points)} observed points"
+            )
+        self.query_one("#history-chart", Static).update(content)
+        self.query_one("#history-hint", Static).update(
+            f"Range {self._history_range.value} · Press h for next range"
+        )
 
     def _render_snapshot(self, snapshot: SystemSnapshot) -> None:
         cpu = snapshot.metrics.cpu

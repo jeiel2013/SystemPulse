@@ -14,6 +14,9 @@ from rich.text import Text
 from systempulse.cli_top import run_top
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
+from systempulse.history.ranges import HistoryRange
+from systempulse.history.store import HistoryStore
+from systempulse.platform.paths import history_database_path
 from systempulse.presentation import (
     format_bytes,
     format_percent,
@@ -263,6 +266,41 @@ def doctor() -> None:
     console.print(table)
     if report.exit_code:
         raise typer.Exit(code=report.exit_code)
+
+
+@app.command()
+def history(
+    range: Annotated[
+        HistoryRange, typer.Option(help="History range from 10m to 30d.")
+    ] = HistoryRange.TEN_MINUTES,
+) -> None:
+    """Show recent local metric history without opening the TUI."""
+    store = HistoryStore(history_database_path())
+    try:
+        points = store.query(range.duration)
+    finally:
+        store.close()
+    if not points:
+        console.print("No historical data yet. Run systempulse to collect samples.")
+        return
+    table = Table(title=f"SystemPulse history · {range.value}", box=box.SIMPLE)
+    table.add_column("Observed")
+    table.add_column("CPU", justify="right")
+    table.add_column("Memory", justify="right")
+    table.add_column("Disk", justify="right")
+    table.add_column("Download", justify="right")
+    table.add_column("Upload", justify="right")
+    for point in points[-20:]:
+        table.add_row(
+            point.observed_at.astimezone().strftime("%Y-%m-%d %H:%M:%S"),
+            format_percent(point.cpu_percent),
+            format_percent(point.memory_percent),
+            format_percent(point.disk_percent),
+            format_rate(point.download_bytes_per_second),
+            format_rate(point.upload_bytes_per_second),
+        )
+    console.print(table)
+    console.print(f"{len(points)} points in range; showing the latest 20.")
 
 
 def main() -> None:

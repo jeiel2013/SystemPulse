@@ -2,6 +2,9 @@
 
 import asyncio
 
+from sqlalchemy.exc import SQLAlchemyError
+
+from systempulse.collectors.base import CollectionResult
 from systempulse.collectors.cpu import CpuCollector
 from systempulse.collectors.disk import DiskCollector
 from systempulse.collectors.gpu.collector import GpuCollector
@@ -11,6 +14,8 @@ from systempulse.collectors.processes import ProcessCollector
 from systempulse.collectors.registry import CollectorRegistry
 from systempulse.collectors.system import SystemCollector
 from systempulse.domain.snapshots import SystemSnapshot
+from systempulse.history.store import HistoryStore
+from systempulse.platform.paths import history_database_path
 from systempulse.services.aggregator import MetricAggregator
 from systempulse.services.metrics import MetricService
 from systempulse.services.state import ApplicationState
@@ -19,25 +24,43 @@ from systempulse.services.state import ApplicationState
 class MonitorSession:
     """Own collection baselines and snapshots for one running monitor."""
 
-    def __init__(self, registry: CollectorRegistry) -> None:
+    def __init__(
+        self, registry: CollectorRegistry, history_store: HistoryStore | None = None
+    ) -> None:
         self.registry = registry
         self.state = ApplicationState()
         self._metrics = MetricService(registry)
         self._aggregator = MetricAggregator()
+        self.history_store = history_store
+        self.history_error: str | None = None
+
+    async def _publish(
+        self, results: tuple[CollectionResult[object], ...]
+    ) -> SystemSnapshot:
+        snapshot = self._aggregator.aggregate(results)
+        self.state.update(snapshot)
+        if self.history_store is not None:
+            try:
+                await asyncio.to_thread(self.history_store.record, snapshot)
+                self.history_error = None
+            except (OSError, SQLAlchemyError) as error:
+                self.history_error = type(error).__name__
+        return snapshot
 
     async def sample(self) -> SystemSnapshot:
         """Collect a cycle and publish its snapshot to application state."""
         results = await self._metrics.collect_all()
-        snapshot = self._aggregator.aggregate(results)
-        self.state.update(snapshot)
-        return snapshot
+        return await self._publish(results)
 
     async def sample_due(self) -> SystemSnapshot:
         """Publish a cycle while respecting each collector's interval."""
         results = await self._metrics.collect_due()
-        snapshot = self._aggregator.aggregate(results)
-        self.state.update(snapshot)
-        return snapshot
+        return await self._publish(results)
+
+    async def close(self) -> None:
+        """Release any open history database connection on exit."""
+        if self.history_store is not None:
+            await asyncio.to_thread(self.history_store.close)
 
     async def sample_after_warmup(self, delay_seconds: float = 1.0) -> SystemSnapshot:
         """Take two samples so CPU rates have an observed time interval."""
@@ -58,4 +81,4 @@ def create_default_session() -> MonitorSession:
     registry.register(ProcessCollector())
     registry.register(SystemCollector())
     registry.register(GpuCollector())
-    return MonitorSession(registry)
+    return MonitorSession(registry, HistoryStore(history_database_path()))

@@ -67,6 +67,9 @@ A experiência padrão dispensa configuração e permissões elevadas.
   do processo selecionado. Campos protegidos aparecem como indisponíveis.
 - **System:** sistema operacional, uptime, informações de CPU e memória e todas
   as GPUs informadas pelo provider ativo.
+- **History:** tendências locais de CPU, memória, disco e rede em períodos de
+  10 minutos a 30 dias. O banco guarda resumos de métricas, sem nomes de
+  processos ou comandos.
 
 As métricas de GPU exigem atualmente o `nvidia-smi` da NVIDIA. Sem ele, o
 SystemPulse continua funcionando e marca a GPU como indisponível. Providers AMD
@@ -79,6 +82,7 @@ systempulse status
 systempulse top --sort memory --limit 10
 systempulse processes --sort memory --limit 10
 systempulse processes --search python
+systempulse history --range 1h
 systempulse doctor
 systempulse version
 ```
@@ -93,7 +97,8 @@ encerram após mostrar o resultado.
 
 | Tecla | Ação |
 | --- | --- |
-| `1` / `2` / `3` | Overview / Processes / System |
+| `1` / `2` / `3` / `4` | Overview / Processes / System / History |
+| `h` | Alternar o período do histórico |
 | `/` | Buscar processos |
 | `c` / `m` / `p` | Ordenar por CPU / memória / PID |
 | `Enter` | Voltar da busca para a tabela ou abrir o processo selecionado |
@@ -113,7 +118,8 @@ truecolor, mas informa menos cores, execute
 A TUI e a CLI foram executadas no Windows. Linux e macOS são plataformas alvo;
 a validação interativa nelas ainda está pendente. O CI foi configurado para
 executar testes, builds e verificações de instalação isolada nos três sistemas.
-Histórico persistente e alertas ainda não foram implementados. Veja as
+Alertas ainda não foram implementados. Veja o
+[armazenamento do histórico](docs/pt-BR/history.md) e as
 [verificações de release](docs/pt-BR/release.md).
 
 Collectors tipados alimentam o estado da aplicação, que abastece Textual e a

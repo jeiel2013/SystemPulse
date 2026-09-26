@@ -365,6 +365,24 @@ async def test_system_view_marks_missing_collector_data() -> None:
 
 
 @pytest.mark.asyncio
+async def test_history_view_cycles_ranges_and_shows_empty_state() -> None:
+    app = PulseApp(session=FakeSession(_snapshot()))
+    async with app.run_test(size=(80, 24)) as pilot:
+        await pilot.pause()
+        await pilot.press("4")
+        await pilot.pause()
+        assert app.has_class("show-history")
+        assert "No historical data" in str(
+            app.query_one("#history-chart", Static).render()
+        )
+        await pilot.press("h")
+        await pilot.pause()
+        assert app._history_range.value == "30m"
+        await pilot.press("1")
+        assert not app.has_class("show-history")
+
+
+@pytest.mark.asyncio
 async def test_disappeared_process_shows_last_observation_only() -> None:
     app = PulseApp(
         session=FakeSession(_snapshot()), details_service=MissingDetailsService()

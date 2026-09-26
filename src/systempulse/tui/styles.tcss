@@ -159,6 +159,10 @@ Footer {
     display: none;
 }
 
+.show-history #body {
+    display: none;
+}
+
 .show-processes #process-explorer {
     display: block;
 }
@@ -172,6 +176,36 @@ Footer {
 
 .show-system #system-view {
     display: block;
+}
+
+#history-view {
+    display: none;
+    width: 100%;
+    height: 1fr;
+    padding: 1 2;
+}
+
+.show-history #history-view {
+    display: block;
+}
+
+#history-heading {
+    height: 2;
+    color: $text-primary;
+    text-style: bold;
+}
+
+#history-chart {
+    height: auto;
+    min-height: 8;
+    border: round $primary 45%;
+    background: $surface;
+    padding: 1 2;
+}
+
+#history-hint {
+    height: 2;
+    color: $text-muted;
 }
 
 #system-heading {
