@@ -3,12 +3,15 @@
 import asyncio
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from threading import Event
 
 import pytest
 
 from systempulse.collectors.base import CollectionResult, CollectorMetadata
 from systempulse.collectors.registry import CollectorRegistry
+from systempulse.domain.analysis import Alert
 from systempulse.domain.availability import Availability
+from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.history.store import HistoryStore
 from systempulse.services.monitor import MonitorSession
 
@@ -64,3 +67,33 @@ async def test_session_persists_summary_history(tmp_path: Path) -> None:
     assert len(points) == 1
     assert points[0].observed_at == snapshot.created_at
     await session.close()
+
+
+@pytest.mark.asyncio
+async def test_close_waits_for_cancelled_sample_write(tmp_path: Path) -> None:
+    started = Event()
+    release = Event()
+
+    class SlowHistoryStore(HistoryStore):
+        def record(
+            self, snapshot: SystemSnapshot, alerts: tuple[Alert, ...] = ()
+        ) -> None:
+            started.set()
+            if not release.wait(timeout=5):
+                raise TimeoutError("test write was not released")
+            super().record(snapshot, alerts)
+
+    store = SlowHistoryStore(tmp_path / "history.sqlite3")
+    session = MonitorSession(CollectorRegistry(), store)
+    sample = asyncio.create_task(session.sample())
+    assert await asyncio.to_thread(started.wait, 2)
+    sample.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await sample
+
+    closing = asyncio.create_task(session.close())
+    await asyncio.sleep(0)
+    assert not closing.done()
+    release.set()
+    await closing
+    assert store._engine is None

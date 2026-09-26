@@ -1,6 +1,9 @@
 """Wire local collectors to the application's typed state."""
 
 import asyncio
+from collections.abc import Coroutine
+from contextlib import suppress
+from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -44,6 +47,8 @@ class MonitorSession:
         self._aggregator = MetricAggregator()
         self.history_store = history_store
         self.history_error: str | None = None
+        self._pending_writes: set[asyncio.Task[None]] = set()
+        self._closed = False
         self.rule_engine = rule_engine
         self.config_error = config_error
         self.plugin_results = plugin_results
@@ -60,10 +65,12 @@ class MonitorSession:
                 analysis.observations, analysis.new_alerts, analysis.ended_alerts
             )
             changed_alerts = (*analysis.new_alerts, *analysis.ended_alerts)
-        if self.history_store is not None:
+        if self.history_store is not None and not self._closed:
             try:
-                await asyncio.to_thread(
-                    self.history_store.record, snapshot, changed_alerts
+                await self._persist(
+                    asyncio.to_thread(
+                        self.history_store.record, snapshot, changed_alerts
+                    )
                 )
                 self.history_error = None
             except (OSError, SQLAlchemyError) as error:
@@ -78,9 +85,11 @@ class MonitorSession:
         if alert is None:
             return False
         self.state.update_alert(alert)
-        if self.history_store is not None:
+        if self.history_store is not None and not self._closed:
             try:
-                await asyncio.to_thread(self.history_store.save_alert, alert)
+                await self._persist(
+                    asyncio.to_thread(self.history_store.save_alert, alert)
+                )
             except (OSError, SQLAlchemyError) as error:
                 self.history_error = type(error).__name__
         return True
@@ -97,8 +106,23 @@ class MonitorSession:
 
     async def close(self) -> None:
         """Release any open history database connection on exit."""
+        self._closed = True
+        if self._pending_writes:
+            await asyncio.gather(*self._pending_writes, return_exceptions=True)
         if self.history_store is not None:
             await asyncio.to_thread(self.history_store.close)
+
+    async def _persist(self, operation: Coroutine[Any, Any, None]) -> None:
+        """Finish an in-flight database write before closing the session."""
+        task = asyncio.create_task(operation)
+        self._pending_writes.add(task)
+        task.add_done_callback(self._write_finished)
+        await asyncio.shield(task)
+
+    def _write_finished(self, task: asyncio.Task[None]) -> None:
+        self._pending_writes.discard(task)
+        with suppress(asyncio.CancelledError):
+            task.exception()
 
     async def sample_after_warmup(self, delay_seconds: float = 1.0) -> SystemSnapshot:
         """Take two samples so CPU rates have an observed time interval."""
