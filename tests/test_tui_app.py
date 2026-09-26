@@ -170,9 +170,10 @@ async def test_top_memory_remains_reachable_in_short_terminal() -> None:
     async with app.run_test(size=(80, 20)) as pilot:
         await pilot.pause()
         body = app.query_one("#body", VerticalScroll)
+        assert app.focused is body
         assert app.query_one("#top-memory-processes", DataTable).region.y >= 20
         await pilot.press("pagedown")
-        await pilot.pause()
+        await pilot.wait_for_scheduled_animations()
         assert body.scroll_y > 0
 
 

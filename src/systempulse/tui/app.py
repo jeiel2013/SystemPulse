@@ -112,6 +112,7 @@ class PulseApp(App[None]):
         self.query_one("#top-memory-processes", DataTable).add_columns(
             "PID", "PROCESS", "MEMORY", "CPU"
         )
+        self.query_one("#body", VerticalScroll).focus()
         self._collect_loop()
 
     def on_resize(self, event: events.Resize) -> None:
@@ -127,6 +128,7 @@ class PulseApp(App[None]):
         """Return to the live system summary."""
         self.remove_class("show-processes")
         self.remove_class("show-system")
+        self.query_one("#body", VerticalScroll).focus()
 
     def action_processes(self) -> None:
         """Open the keyboard-driven process explorer."""
