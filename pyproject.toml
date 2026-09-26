@@ -22,8 +22,10 @@ classifiers = [
     "Topic :: System :: Monitoring",
 ]
 dependencies = [
+    "platformdirs>=4,<5",
     "psutil>=7.2,<8",
     "rich>=15,<16",
+    "sqlalchemy>=2,<3",
     "textual>=8.2,<9",
     "typer>=0.24,<1",
 ]
