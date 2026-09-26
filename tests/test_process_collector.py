@@ -93,6 +93,10 @@ def test_process_scan_computes_cpu_from_matching_instance(
     assert fake.attributes is not None
     assert "status" not in fake.attributes
     assert "ppid" not in fake.attributes
+    assert "username" not in fake.attributes
+    assert "num_threads" not in fake.attributes
+    assert second.metric.processes[0].user is None
+    assert second.metric.processes[0].threads is None
 
 
 def test_pid_reuse_does_not_inherit_previous_cpu(

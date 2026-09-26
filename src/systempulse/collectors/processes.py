@@ -22,8 +22,6 @@ _SCAN_ATTRIBUTES = (
     "create_time",
     "cpu_times",
     "memory_info",
-    "username",
-    "num_threads",
 )
 
 
@@ -121,8 +119,8 @@ class ProcessCollector:
                     cpu_percent=cpu_percent,
                     memory_rss_bytes=_rss_bytes(info.get("memory_info")),
                     status=None,
-                    user=_optional_text(info.get("username")),
-                    threads=_optional_nonnegative_int(info.get("num_threads")),
+                    user=None,
+                    threads=None,
                     parent_pid=None,
                 )
             )

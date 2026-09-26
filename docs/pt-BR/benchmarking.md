@@ -1,4 +1,4 @@
-# Benchmark de varredura de processos
+# Benchmark de custo em execução
 
 [English](../en/benchmarking.md) | [Português Brasileiro](benchmarking.md)
 
@@ -22,15 +22,34 @@ status e PID pai. `full` lê todos os campos listados. A quantidade de processos
 pode mudar durante a medição; portanto, os tempos são indicativos e não
 equivalem a um conjunto sintético de tamanho fixo.
 
-Em uma máquina de desenvolvimento Windows com Python 3.12.14 e 213 processos,
-a mediana de `core` foi aproximadamente 0,52 segundo; `table` levou 0,73 segundo.
-Acrescentar status ou PID pai separadamente elevou as medianas para
-aproximadamente 1,24 e 1,60 segundo; `full` levou 2,35 segundos. Esses são
-resultados locais, não metas de desempenho multiplataforma. Por isso, a varredura periódica
-lê os campos de tabela menos custosos e deixa status e PID pai para os detalhes
-de processo. O coletor de processos segue seu intervalo declarado de dois
-segundos; coletores mais leves podem executar a cada segundo.
+Em uma máquina de desenvolvimento Windows com Python 3.12.14 e 233 processos,
+uma medição recente de `core` levou 0,36 segundo de mediana; `table` levou 0,65
+segundo. Incluir status ou PID pai elevou a mediana para 0,78 ou 1,96 segundo;
+`full` levou 2,71 segundos. São medições locais, não conclusões para as três
+plataformas. A coleta periódica agora lê apenas os atributos de `core`. Usuário,
+número de threads, status e PID pai são obtidos quando o detalhe ou a árvore de
+processos é aberta. O coletor de processos roda a cada dois segundos; coletores
+mais leves, a cada segundo.
 
-No momento, o script mede **apenas tempo decorrido**. Consumo de CPU, pico de
-memória, gravações no banco e custo da TUI exigem benchmarks próprios antes da
-v0.1.
+Para estimar o custo em execução:
+
+```sh
+uv run python scripts/benchmark_runtime.py --seconds 10
+```
+
+O script executa os coletores padrão e depois a aplicação Textual real em modo
+de teste headless, cada fase pela duração indicada. Usa diretórios temporários
+de dados. Mostra tempo decorrido, tempo de CPU do processo como percentual de
+**um núcleo**, memória residente no fim da fase, quantidade de linhas e tamanho
+do SQLite, além da duração dos ciclos de coleta. Os valores incluem
+instrumentação e inicialização dentro de cada fase. A renderização headless
+difere de um terminal físico. A memória no fim da fase não representa o pico.
+
+No mesmo Windows, uma execução de 10 segundos após a mudança na varredura
+mediu 25,7% de um núcleo e 82,7 MiB de RAM para os coletores; a TUI headless
+mediu 32,3% de um núcleo e 91,9 MiB. Cada fase gravou 10 linhas de histórico;
+os arquivos SQLite ocupavam cerca de 20 KiB naquele momento. Os ciclos de
+coleta tiveram mediana de 0,23 segundo e máximo de 0,66 segundo. O custo de
+CPU ainda excede a meta inicial de baixo consumo. Precisamos de execuções mais
+longas e medições interativas no Linux/macOS antes de afirmar desempenho para
+uma release.
