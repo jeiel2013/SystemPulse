@@ -1,0 +1,48 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          version: "0.12.19"
+          python-version: "3.12"
+      - name: Install and check selected release tag
+        run: |
+          uv sync --locked
+          uv run --locked python scripts/check_release_tag.py "${{ github.ref_name }}"
+      - name: Verify source
+        run: |
+          uv run --locked ruff check .
+          uv run --locked ruff format --check .
+          uv run --locked mypy
+          uv run --locked pytest -q
+      - name: Build and smoke-test distribution
+        run: |
+          uv build --no-sources
+          uv run --locked python scripts/smoke_install.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: python-distributions
+          path: dist/systempulse_monitor-*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: python-distributions
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1

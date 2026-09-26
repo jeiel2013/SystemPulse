@@ -32,3 +32,22 @@ Publication requires green CI jobs on all three operating systems and a review
 of the built artifacts and release notes. Automated TUI tests do not establish
 that every terminal renders identically; interactive Linux and macOS validation
 remains open. Do not describe that support as fully validated yet.
+
+Before publishing, confirm the `systempulse-monitor` name can be used by this
+project on PyPI and configure a trusted publishing identity. Review the
+[changelog](../../CHANGELOG.md) and [security policy](../../SECURITY.md), run
+the wheel smoke test, then exercise the installed `systempulse` command in a
+physical Windows, Linux, and macOS terminal. Check both themes, terminal
+resize, process search/details, `q`/`Ctrl+C` exit, and the terminal state after
+exit. The current Windows benchmark exceeds the initial idle CPU goal; repeat
+longer measurements before stating a performance guarantee. Publishing and
+pushing the current local commits are separate maintainer actions.
+
+After these checks, create a tag matching `pyproject.toml` exactly, such as
+`v0.1.0.dev0`, and manually dispatch
+[Publish to PyPI](../../.github/workflows/publish.yml) from that tag. The
+workflow rejects a mismatched tag, reruns quality checks, builds and tests the
+distribution, then publishes through PyPI Trusted Publishing. Configure the
+GitHub `pypi` environment with a required reviewer and register this workflow
+as a [PyPI trusted publisher](https://docs.pypi.org/trusted-publishers/)
+before dispatch. No workflow runs publication on a normal push.
