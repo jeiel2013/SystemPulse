@@ -31,7 +31,7 @@ jobs:
       - name: Typecheck
         run: uv run --locked mypy
       - name: Test CLI and TUI
-        run: uv run --locked pytest -q
+        run: uv run --locked python scripts/run_tests_ci.py
       - name: Build source and wheel distributions
         run: uv build --no-sources
       - name: Install wheel and smoke-test console command
