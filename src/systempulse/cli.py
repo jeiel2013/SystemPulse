@@ -2,6 +2,7 @@
 
 import asyncio
 import sys
+from contextlib import suppress
 from typing import Annotated
 
 import typer
@@ -10,6 +11,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
+from systempulse.cli_top import run_top
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.presentation import (
@@ -192,6 +194,32 @@ def processes(
         console.print("No matching processes.")
     if process_snapshot.skipped_count:
         console.print(f"{process_snapshot.skipped_count} processes could not be read.")
+
+
+@app.command()
+def top(
+    sort: Annotated[ProcessSort, typer.Option(help="Sort by CPU, memory, or PID.")] = (
+        ProcessSort.CPU
+    ),
+    limit: Annotated[
+        int, typer.Option(min=1, max=500, help="Maximum rows to show.")
+    ] = 20,
+    search: Annotated[
+        str | None, typer.Option(help="Case-insensitive name filter.")
+    ] = None,
+) -> None:
+    """Continuously show CPU, memory, and leading processes; press q to quit."""
+    if not sys.stdin.isatty() or not sys.stdout.isatty():
+        typer.echo("SystemPulse top needs an interactive terminal.", err=True)
+        raise typer.Exit(code=1)
+    with suppress(KeyboardInterrupt):
+        asyncio.run(
+            run_top(
+                create_default_session(),
+                console,
+                ProcessQuery(sort=sort, search=search or "", limit=limit),
+            )
+        )
 
 
 @app.command()

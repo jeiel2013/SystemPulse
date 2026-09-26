@@ -2,17 +2,21 @@
 
 from dataclasses import replace
 from datetime import UTC, datetime
+from io import StringIO
 
 import pytest
+from rich.console import Console
 from typer.testing import CliRunner
 
 from systempulse.cli import app
+from systempulse.cli_top import render_top
 from systempulse.domain.availability import Availability, CollectorStatus
 from systempulse.domain.gpu import GpuMetrics, GpuSnapshot
 from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import ProcessMetrics, ProcessSnapshot
 from systempulse.domain.snapshots import MetricSnapshot, SystemSnapshot
 from systempulse.presentation import format_bytes, format_percent
+from systempulse.services.process_query import ProcessQuery, ProcessSort
 
 
 def _process(at: datetime, pid: int, name: str, cpu: float, rss: int) -> ProcessMetrics:
@@ -127,3 +131,35 @@ def test_formatting_marks_missing_values() -> None:
     assert format_bytes(None) == "Unavailable"
     assert format_percent(None) == "Unavailable"
     assert format_bytes(1024**2) == "1.0 MiB"
+
+
+def test_top_renders_memory_order_and_missing_process_state(
+    observed_snapshot: SystemSnapshot,
+) -> None:
+    output = StringIO()
+    display = Console(file=output, width=80, force_terminal=False)
+    display.print(
+        render_top(
+            observed_snapshot,
+            ProcessQuery(sort=ProcessSort.MEMORY, limit=2),
+            height=30,
+        )
+    )
+    rendered = output.getvalue()
+    assert rendered.index("Heavy") < rendered.index("Fast")
+    assert "37.5%" in rendered
+    assert "50.0%" in rendered
+    assert "q / Ctrl+C to quit" in rendered
+
+    output = StringIO()
+    display = Console(file=output, width=80, force_terminal=False)
+    display.print(
+        render_top(replace(observed_snapshot, processes=None), ProcessQuery(), 30)
+    )
+    assert "Process metrics unavailable" in output.getvalue()
+
+
+def test_top_requires_interactive_terminal() -> None:
+    result = CliRunner().invoke(app, ["top"])
+    assert result.exit_code == 1
+    assert "needs an interactive terminal" in result.output
