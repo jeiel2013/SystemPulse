@@ -28,8 +28,8 @@ approximately 1.24 and 1.60 seconds; the `full` scan took 2.35 seconds. These
 are local measurements, not cross-platform performance claims. The periodic
 collector therefore reads
 the inexpensive table fields and leaves status and parent PID for process
-details. Its declared default interval is two seconds; interval scheduling is
-not implemented yet.
+details. The process collector runs at its declared two-second interval while
+lighter collectors can run every second.
 
 This script currently measures **wall time only**. CPU usage, peak memory,
 database writes, and TUI overhead require separate benchmarks before v0.1.

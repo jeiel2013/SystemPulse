@@ -2,6 +2,7 @@
 
 from collections import deque
 
+from systempulse.domain.analysis import Alert, AlertState, Observation
 from systempulse.domain.availability import CollectorStatus
 from systempulse.domain.processes import ProcessIdentity, ProcessMetrics
 from systempulse.domain.snapshots import SystemSnapshot
@@ -15,6 +16,47 @@ class ApplicationState:
             raise ValueError("history_limit must be positive")
         self._recent: deque[SystemSnapshot] = deque(maxlen=history_limit)
         self.selected_process: ProcessIdentity | None = None
+        self._observations: deque[Observation] = deque(maxlen=100)
+        self._alerts: deque[Alert] = deque(maxlen=100)
+
+    @property
+    def observations(self) -> tuple[Observation, ...]:
+        return tuple(self._observations)
+
+    @property
+    def alerts(self) -> tuple[Alert, ...]:
+        return tuple(self._alerts)
+
+    @property
+    def active_alerts(self) -> tuple[Alert, ...]:
+        return tuple(
+            alert for alert in self._alerts if alert.state == AlertState.ACTIVE
+        )
+
+    def add_analysis(
+        self,
+        observations: tuple[Observation, ...],
+        new_alerts: tuple[Alert, ...],
+        ended_alerts: tuple[Alert, ...],
+    ) -> None:
+        self._observations.extend(observations)
+        for alert in (*new_alerts, *ended_alerts):
+            self._replace_alert(alert)
+
+    def update_alert(self, alert: Alert) -> None:
+        self._replace_alert(alert)
+
+    def _replace_alert(self, alert: Alert) -> None:
+        self._alerts = deque(
+            (
+                existing
+                for existing in self._alerts
+                if (existing.rule_id, existing.triggered_at)
+                != (alert.rule_id, alert.triggered_at)
+            ),
+            maxlen=100,
+        )
+        self._alerts.append(alert)
 
     @property
     def current_snapshot(self) -> SystemSnapshot | None:

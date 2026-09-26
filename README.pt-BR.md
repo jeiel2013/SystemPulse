@@ -7,8 +7,8 @@
 O SystemPulse é um monitor de sistema open source, local e somente de leitura.
 Ele mostra CPU, memória, processos e métricas de GPU disponíveis em uma interface
 de terminal controlada pelo teclado. Não há dashboard web, conta ou telemetria.
-Diagnósticos baseados em evidências e alertas estão planejados; hoje, `doctor`
-verifica o próprio SystemPulse.
+Regras de limite sustentado produzem observações factuais e alertas locais;
+`doctor` verifica o próprio SystemPulse.
 
 > **Versão de desenvolvimento:** instale a partir de uma cópia do repositório.
 > O projeto ainda não foi publicado no PyPI. O nome da distribuição é
@@ -70,6 +70,8 @@ A experiência padrão dispensa configuração e permissões elevadas.
 - **History:** tendências locais de CPU, memória, disco e rede em períodos de
   10 minutos a 30 dias. O banco guarda resumos de métricas, sem nomes de
   processos ou comandos.
+- **Alerts:** regras locais para CPU, memória e disco exigem evidência contínua
+  antes de disparar. Alertas dispensados e resolvidos continuam visíveis.
 
 As métricas de GPU exigem atualmente o `nvidia-smi` da NVIDIA. Sem ele, o
 SystemPulse continua funcionando e marca a GPU como indisponível. Providers AMD
@@ -83,6 +85,7 @@ systempulse top --sort memory --limit 10
 systempulse processes --sort memory --limit 10
 systempulse processes --search python
 systempulse history --range 1h
+systempulse alerts
 systempulse doctor
 systempulse version
 ```
@@ -97,8 +100,9 @@ encerram após mostrar o resultado.
 
 | Tecla | Ação |
 | --- | --- |
-| `1` / `2` / `3` / `4` | Overview / Processes / System / History |
+| `1` / `2` / `3` / `4` / `5` | Overview / Processes / System / History / Alerts |
 | `h` | Alternar o período do histórico |
+| `d` | Dispensar o alerta ativo selecionado |
 | `/` | Buscar processos |
 | `c` / `m` / `p` | Ordenar por CPU / memória / PID |
 | `Enter` | Voltar da busca para a tabela ou abrir o processo selecionado |
@@ -118,7 +122,7 @@ truecolor, mas informa menos cores, execute
 A TUI e a CLI foram executadas no Windows. Linux e macOS são plataformas alvo;
 a validação interativa nelas ainda está pendente. O CI foi configurado para
 executar testes, builds e verificações de instalação isolada nos três sistemas.
-Alertas ainda não foram implementados. Veja o
+Veja [alertas e configuração](docs/pt-BR/alerts.md), o
 [armazenamento do histórico](docs/pt-BR/history.md) e as
 [verificações de release](docs/pt-BR/release.md).
 

@@ -6,8 +6,8 @@
 
 SystemPulse is an open-source, local, read-only system monitor. It shows live
 CPU, memory, process, and available GPU readings in a keyboard-driven terminal
-interface. It has no web dashboard, account, or telemetry. Evidence-based
-diagnostics and alerts are planned; `doctor` currently checks SystemPulse itself.
+interface. It has no web dashboard, account, or telemetry. Sustained threshold
+rules produce factual observations and local alerts; `doctor` checks SystemPulse itself.
 
 > **Development preview:** Install from a source checkout. This project has not
 > been published to PyPI. Its distribution name is `systempulse-monitor`; the
@@ -67,6 +67,8 @@ configuration or elevated permissions are needed for the default experience.
   GPU reported by the active provider.
 - **History:** local CPU, memory, disk, and network trends for 10 minutes through
   30 days. The database stores metric summaries, not process names or commands.
+- **Alerts:** local CPU, memory, and disk threshold rules require continuous
+  evidence before triggering. Dismissed and resolved alerts remain visible.
 
 GPU readings currently require NVIDIA's `nvidia-smi`. Without it, SystemPulse
 continues running and marks GPU metrics unavailable. AMD and Intel providers
@@ -80,6 +82,7 @@ systempulse top --sort memory --limit 10
 systempulse processes --sort memory --limit 10
 systempulse processes --search python
 systempulse history --range 1h
+systempulse alerts
 systempulse doctor
 systempulse version
 ```
@@ -93,8 +96,9 @@ collectors, GPU provider, and terminal. The other commands exit after printing.
 
 | Key | Action |
 | --- | --- |
-| `1` / `2` / `3` / `4` | Overview / Processes / System / History |
+| `1` / `2` / `3` / `4` / `5` | Overview / Processes / System / History / Alerts |
 | `h` | Cycle the History range |
+| `d` | Dismiss a selected active alert |
 | `/` | Search processes |
 | `c` / `m` / `p` | Sort processes by CPU / memory / PID |
 | `Enter` | Return from search to the table, or open a selected process |
@@ -113,8 +117,8 @@ supports truecolor but reports fewer colors, run
 
 The TUI and CLI have been run on Windows. Linux and macOS are target platforms;
 their interactive validation is pending. CI is configured to run tests, package
-builds, and isolated tool-install checks on all three platforms. Alerts are
-not implemented yet. See [history storage](docs/en/history.md) and
+builds, and isolated tool-install checks on all three platforms. See
+[alerts and configuration](docs/en/alerts.md), [history storage](docs/en/history.md) and
 [release checks](docs/en/release.md).
 
 Typed collectors feed application state, then Textual and the CLI. Collection

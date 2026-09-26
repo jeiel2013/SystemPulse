@@ -28,8 +28,8 @@ Acrescentar status ou PID pai separadamente elevou as medianas para
 aproximadamente 1,24 e 1,60 segundo; `full` levou 2,35 segundos. Esses são
 resultados locais, não metas de desempenho multiplataforma. Por isso, a varredura periódica
 lê os campos de tabela menos custosos e deixa status e PID pai para os detalhes
-de processo. O intervalo padrão declarado é de dois segundos; o agendamento
-por intervalo ainda não foi implementado.
+de processo. O coletor de processos segue seu intervalo declarado de dois
+segundos; coletores mais leves podem executar a cada segundo.
 
 No momento, o script mede **apenas tempo decorrido**. Consumo de CPU, pico de
 memória, gravações no banco e custo da TUI exigem benchmarks próprios antes da

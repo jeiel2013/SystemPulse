@@ -18,6 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
+from systempulse.domain.analysis import Alert, AlertState, Severity
 from systempulse.domain.snapshots import SystemSnapshot
 
 
@@ -38,6 +39,19 @@ class MetricRow(Base):
     disk_percent: Mapped[float | None] = mapped_column(Float())
     download_bytes_per_second: Mapped[float | None] = mapped_column(Float())
     upload_bytes_per_second: Mapped[float | None] = mapped_column(Float())
+
+
+class AlertRow(Base):
+    """Locally persisted alert lifecycle, with no process details."""
+
+    __tablename__ = "alerts"
+
+    rule_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    triggered_epoch: Mapped[int] = mapped_column(Integer, primary_key=True)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    message: Mapped[str] = mapped_column(String(500), nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    ended_epoch: Mapped[int | None] = mapped_column(Integer())
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,7 +103,7 @@ class HistoryStore:
                 self._engine.dispose()
                 self._engine = None
 
-    def record(self, snapshot: SystemSnapshot) -> None:
+    def record(self, snapshot: SystemSnapshot, alerts: tuple[Alert, ...] = ()) -> None:
         """Write one small summary and periodically compact older data."""
         with self._lock, Session(self._database()) as session:
             at = snapshot.created_at
@@ -113,12 +127,42 @@ class HistoryStore:
                 ),
             )
             session.merge(row)
+            for alert in alerts:
+                session.merge(_alert_row(alert))
             if self._last_compaction is None or at - self._last_compaction >= timedelta(
                 minutes=1
             ):
                 self._compact(session, at)
                 self._last_compaction = at
             session.commit()
+
+    def save_alert(self, alert: Alert) -> None:
+        """Persist a user dismissal independently of the sample cycle."""
+        with self._lock, Session(self._database()) as session:
+            session.merge(_alert_row(alert))
+            session.commit()
+
+    def query_alerts(self, limit: int = 100) -> tuple[Alert, ...]:
+        """Return recent alert events, including resolved and dismissed ones."""
+        if limit < 1:
+            raise ValueError("limit must be positive")
+        with self._lock, Session(self._database()) as session:
+            rows = session.scalars(
+                select(AlertRow).order_by(AlertRow.triggered_epoch.desc()).limit(limit)
+            ).all()
+            return tuple(
+                Alert(
+                    row.rule_id,
+                    datetime.fromtimestamp(row.triggered_epoch / 1000, UTC),
+                    Severity(row.severity),
+                    row.message,
+                    AlertState(row.state),
+                    datetime.fromtimestamp(row.ended_epoch / 1000, UTC)
+                    if row.ended_epoch is not None
+                    else None,
+                )
+                for row in rows
+            )
 
     def query(
         self, duration: timedelta, *, now: datetime | None = None
@@ -220,3 +264,16 @@ class HistoryStore:
 def _mean(rows: list[MetricRow], field: str) -> float | None:
     values = [value for row in rows if (value := getattr(row, field)) is not None]
     return sum(values) / len(values) if values else None
+
+
+def _alert_row(alert: Alert) -> AlertRow:
+    return AlertRow(
+        rule_id=alert.rule_id,
+        triggered_epoch=int(alert.triggered_at.timestamp() * 1000),
+        severity=alert.severity.value,
+        message=alert.message,
+        state=alert.state.value,
+        ended_epoch=int(alert.ended_at.timestamp() * 1000)
+        if alert.ended_at is not None
+        else None,
+    )

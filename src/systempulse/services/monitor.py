@@ -13,9 +13,12 @@ from systempulse.collectors.network import NetworkCollector
 from systempulse.collectors.processes import ProcessCollector
 from systempulse.collectors.registry import CollectorRegistry
 from systempulse.collectors.system import SystemCollector
+from systempulse.config.settings import load_settings
+from systempulse.domain.analysis import Alert
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.history.store import HistoryStore
 from systempulse.platform.paths import history_database_path
+from systempulse.rules.engine import RuleEngine
 from systempulse.services.aggregator import MetricAggregator
 from systempulse.services.metrics import MetricService
 from systempulse.services.state import ApplicationState
@@ -25,7 +28,11 @@ class MonitorSession:
     """Own collection baselines and snapshots for one running monitor."""
 
     def __init__(
-        self, registry: CollectorRegistry, history_store: HistoryStore | None = None
+        self,
+        registry: CollectorRegistry,
+        history_store: HistoryStore | None = None,
+        rule_engine: RuleEngine | None = None,
+        config_error: str | None = None,
     ) -> None:
         self.registry = registry
         self.state = ApplicationState()
@@ -33,19 +40,45 @@ class MonitorSession:
         self._aggregator = MetricAggregator()
         self.history_store = history_store
         self.history_error: str | None = None
+        self.rule_engine = rule_engine
+        self.config_error = config_error
 
     async def _publish(
         self, results: tuple[CollectionResult[object], ...]
     ) -> SystemSnapshot:
         snapshot = self._aggregator.aggregate(results)
         self.state.update(snapshot)
+        changed_alerts: tuple[Alert, ...] = ()
+        if self.rule_engine is not None:
+            analysis = self.rule_engine.evaluate(snapshot)
+            self.state.add_analysis(
+                analysis.observations, analysis.new_alerts, analysis.ended_alerts
+            )
+            changed_alerts = (*analysis.new_alerts, *analysis.ended_alerts)
         if self.history_store is not None:
             try:
-                await asyncio.to_thread(self.history_store.record, snapshot)
+                await asyncio.to_thread(
+                    self.history_store.record, snapshot, changed_alerts
+                )
                 self.history_error = None
             except (OSError, SQLAlchemyError) as error:
                 self.history_error = type(error).__name__
         return snapshot
+
+    async def dismiss_alert(self, rule_id: str) -> bool:
+        """Dismiss an active alert without altering the underlying rule."""
+        if self.rule_engine is None:
+            return False
+        alert = self.rule_engine.dismiss(rule_id)
+        if alert is None:
+            return False
+        self.state.update_alert(alert)
+        if self.history_store is not None:
+            try:
+                await asyncio.to_thread(self.history_store.save_alert, alert)
+            except (OSError, SQLAlchemyError) as error:
+                self.history_error = type(error).__name__
+        return True
 
     async def sample(self) -> SystemSnapshot:
         """Collect a cycle and publish its snapshot to application state."""
@@ -81,4 +114,10 @@ def create_default_session() -> MonitorSession:
     registry.register(ProcessCollector())
     registry.register(SystemCollector())
     registry.register(GpuCollector())
-    return MonitorSession(registry, HistoryStore(history_database_path()))
+    loaded = load_settings()
+    return MonitorSession(
+        registry,
+        HistoryStore(history_database_path()),
+        RuleEngine(loaded.settings.enabled_rules()),
+        loaded.error,
+    )

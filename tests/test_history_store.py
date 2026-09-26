@@ -3,6 +3,7 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from systempulse.domain.analysis import Alert, AlertState, Severity
 from systempulse.domain.metrics import CpuMetrics, MemoryMetrics
 from systempulse.domain.snapshots import MetricSnapshot, SystemSnapshot
 from systempulse.history.store import HistoryStore
@@ -45,3 +46,21 @@ def test_history_rejects_nonpositive_range(tmp_path: Path) -> None:
     store = HistoryStore(tmp_path / "history.sqlite3")
     with pytest.raises(ValueError, match="positive"):
         store.query(timedelta(0))
+
+
+def test_alert_lifecycle_persists_locally(tmp_path: Path) -> None:
+    store = HistoryStore(tmp_path / "history.sqlite3")
+    at = datetime(2026, 1, 1, tzinfo=UTC)
+    alert = Alert("high-cpu", at, Severity.WARNING, "CPU stayed above 90%")
+    store.save_alert(alert)
+    assert store.query_alerts()[0] == alert
+    dismissed = Alert(
+        alert.rule_id,
+        alert.triggered_at,
+        alert.severity,
+        alert.message,
+        AlertState.DISMISSED,
+    )
+    store.save_alert(dismissed)
+    assert store.query_alerts()[0].state == AlertState.DISMISSED
+    store.close()

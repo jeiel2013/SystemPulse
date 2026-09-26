@@ -12,6 +12,7 @@ from rich.table import Table
 from rich.text import Text
 
 from systempulse.cli_top import run_top
+from systempulse.domain.analysis import AlertState
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.history.ranges import HistoryRange
@@ -301,6 +302,35 @@ def history(
         )
     console.print(table)
     console.print(f"{len(points)} points in range; showing the latest 20.")
+
+
+@app.command()
+def alerts(
+    limit: Annotated[int, typer.Option(min=1, max=100)] = 20,
+) -> None:
+    """Show locally recorded threshold alerts and their current state."""
+    store = HistoryStore(history_database_path())
+    try:
+        entries = store.query_alerts(limit)
+    finally:
+        store.close()
+    if not entries:
+        console.print("No alerts recorded.")
+        return
+    table = Table(title="SystemPulse alerts", box=box.SIMPLE)
+    table.add_column("Triggered")
+    table.add_column("State")
+    table.add_column("Severity")
+    table.add_column("Observation", overflow="fold")
+    for alert in entries:
+        state_style = "yellow" if alert.state == AlertState.ACTIVE else "dim"
+        table.add_row(
+            alert.triggered_at.astimezone().strftime("%Y-%m-%d %H:%M:%S"),
+            Text(alert.state.value, style=state_style),
+            alert.severity.value,
+            alert.message,
+        )
+    console.print(table)
 
 
 def main() -> None:

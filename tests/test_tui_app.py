@@ -11,6 +11,7 @@ from textual import constants
 from textual.containers import VerticalScroll
 from textual.widgets import DataTable, Input, Static
 
+from systempulse.domain.analysis import Alert, Severity
 from systempulse.domain.availability import Availability, CollectorStatus
 from systempulse.domain.gpu import GpuMetrics, GpuSnapshot
 from systempulse.domain.io import DiskMetrics, NetworkMetrics
@@ -380,6 +381,26 @@ async def test_history_view_cycles_ranges_and_shows_empty_state() -> None:
         assert app._history_range.value == "30m"
         await pilot.press("1")
         assert not app.has_class("show-history")
+
+
+@pytest.mark.asyncio
+async def test_alert_view_shows_observed_alert_and_analysis() -> None:
+    session = FakeSession(_snapshot())
+    at = session.snapshot.created_at
+    session.state.add_analysis(
+        (), (Alert("high-cpu", at, Severity.WARNING, "Observed CPU above 90%"),), ()
+    )
+    app = PulseApp(session=session)
+    async with app.run_test(size=(80, 24)) as pilot:
+        await pilot.pause()
+        assert "1 active alerts" in str(
+            app.query_one("#analysis-panel", Static).render()
+        )
+        await pilot.press("5")
+        assert app.has_class("show-alerts")
+        assert app.query_one("#alert-table", DataTable).row_count == 1
+        await pilot.press("1")
+        assert not app.has_class("show-alerts")
 
 
 @pytest.mark.asyncio

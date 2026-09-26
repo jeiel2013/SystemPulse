@@ -78,9 +78,9 @@ class LoadedSettings:
 def load_settings(path: Path | None = None) -> LoadedSettings:
     """Return defaults if the optional config is missing or invalid."""
     chosen = path or configuration_path()
-    if not chosen.exists():
-        return LoadedSettings(AppSettings())
     try:
+        if not chosen.exists():
+            return LoadedSettings(AppSettings())
         with chosen.open("rb") as stream:
             raw = tomllib.load(stream)
         return LoadedSettings(AppSettings.model_validate(raw))

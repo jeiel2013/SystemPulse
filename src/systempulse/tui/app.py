@@ -14,6 +14,7 @@ from textual.binding import Binding
 from textual.containers import Container, VerticalScroll
 from textual.widgets import DataTable, Footer, Header, Static
 
+from systempulse.domain.analysis import Alert, AlertState
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.history.ranges import HistoryRange
@@ -71,7 +72,9 @@ class PulseApp(App[None]):
         ("2", "processes", "Processes"),
         ("3", "system", "System"),
         ("4", "history", "History"),
+        ("5", "alerts", "Alerts"),
         ("h", "history_range", "Range"),
+        ("d", "dismiss_alert", "Dismiss"),
         ("t", "toggle_theme", "Theme"),
     ]
 
@@ -86,6 +89,7 @@ class PulseApp(App[None]):
         self._refresh_requested = asyncio.Event()
         self._history_range = HistoryRange.TEN_MINUTES
         self._history_last = 0.0
+        self._visible_alerts: tuple[Alert, ...] = ()
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -123,6 +127,7 @@ class PulseApp(App[None]):
             yield DataTable(
                 id="top-memory-processes", cursor_type="none", zebra_stripes=True
             )
+            yield Static("SYSTEM ANALYSIS\nWaiting for samples", id="analysis-panel")
             yield Static("Checking collectors…", id="collector-line")
         yield ProcessExplorer(id="process-explorer")
         with VerticalScroll(id="system-view"):
@@ -134,6 +139,13 @@ class PulseApp(App[None]):
             yield Static("HISTORY · LOCAL METRICS", id="history-heading")
             yield Static("Loading local history", id="history-chart")
             yield Static("Press h to change range", id="history-hint")
+        with VerticalScroll(id="alerts-view"):
+            yield Static("ALERTS · OBSERVED THRESHOLDS", id="alerts-heading")
+            yield DataTable(id="alert-table", cursor_type="row", zebra_stripes=True)
+            yield Static(
+                "No alerts recorded. Press d to dismiss a selected active alert.",
+                id="alerts-hint",
+            )
         yield Footer()
 
     def on_mount(self) -> None:
@@ -144,6 +156,9 @@ class PulseApp(App[None]):
         table.add_columns("PID", "PROCESS", "CPU", "MEMORY")
         self.query_one("#top-memory-processes", DataTable).add_columns(
             "PID", "PROCESS", "MEMORY", "CPU"
+        )
+        self.query_one("#alert-table", DataTable).add_columns(
+            "WHEN", "STATE", "SEVERITY", "OBSERVATION"
         )
         self.query_one("#body", VerticalScroll).focus()
         self._collect_loop()
@@ -166,6 +181,7 @@ class PulseApp(App[None]):
         self.remove_class("show-processes")
         self.remove_class("show-system")
         self.remove_class("show-history")
+        self.remove_class("show-alerts")
         self.query_one("#body", VerticalScroll).focus()
 
     def action_processes(self) -> None:
@@ -173,6 +189,7 @@ class PulseApp(App[None]):
         self.add_class("show-processes")
         self.remove_class("show-system")
         self.remove_class("show-history")
+        self.remove_class("show-alerts")
         self.query_one(ProcessExplorer).focus_table()
 
     def action_system(self) -> None:
@@ -180,14 +197,39 @@ class PulseApp(App[None]):
         self.remove_class("show-processes")
         self.add_class("show-system")
         self.remove_class("show-history")
+        self.remove_class("show-alerts")
 
     def action_history(self) -> None:
         """Open the local metric timeline."""
         self.remove_class("show-processes")
         self.remove_class("show-system")
         self.add_class("show-history")
+        self.remove_class("show-alerts")
         self.query_one("#history-view", VerticalScroll).focus()
         self._load_history()
+
+    def action_alerts(self) -> None:
+        """Open the locally observed alert lifecycle."""
+        self.remove_class("show-processes")
+        self.remove_class("show-system")
+        self.remove_class("show-history")
+        self.add_class("show-alerts")
+        self.query_one("#alert-table", DataTable).focus()
+
+    async def action_dismiss_alert(self) -> None:
+        """Dismiss only a selected active alert, leaving its rule in place."""
+        if not self.has_class("show-alerts") or not isinstance(
+            self.session, MonitorSession
+        ):
+            return
+        table = self.query_one("#alert-table", DataTable)
+        index = table.cursor_row
+        if 0 <= index < len(self._visible_alerts):
+            alert = self._visible_alerts[index]
+            if alert.state == AlertState.ACTIVE:
+                await self.session.dismiss_alert(alert.rule_id)
+                self._render_alerts()
+                self.notify("Alert dismissed", timeout=2)
 
     def action_history_range(self) -> None:
         """Cycle through supported history windows in the history view."""
@@ -388,6 +430,44 @@ class PulseApp(App[None]):
         )
         self.query_one("#collector-line", Static).update(status_text)
         self._render_system(snapshot)
+        self._render_analysis(snapshot)
+        self._render_alerts()
+
+    def _render_analysis(self, snapshot: SystemSnapshot) -> None:
+        """Present measurements and rule-backed observations without causes."""
+        cpu = snapshot.metrics.cpu
+        memory = snapshot.metrics.memory
+        disk = snapshot.metrics.disk
+        active = self.session.state.active_alerts
+        lines = [
+            "SYSTEM ANALYSIS",
+            f"CPU {format_percent(cpu.total_percent if cpu else None)} · "
+            f"RAM {format_percent(memory.percent if memory else None)} · "
+            f"Disk {format_percent(disk.percent if disk else None)}",
+            f"{len(active)} active alerts",
+        ]
+        lines.extend(item.message for item in self.session.state.observations[-3:])
+        self.query_one("#analysis-panel", Static).update("\n".join(lines))
+
+    def _render_alerts(self) -> None:
+        entries = tuple(reversed(self.session.state.alerts))
+        if entries == self._visible_alerts:
+            return
+        self._visible_alerts = entries
+        table = self.query_one("#alert-table", DataTable)
+        table.clear()
+        for alert in entries:
+            table.add_row(
+                alert.triggered_at.astimezone().strftime("%H:%M:%S"),
+                alert.state.value,
+                alert.severity.value,
+                alert.message,
+            )
+        self.query_one("#alerts-hint", Static).update(
+            f"{len(entries)} recorded alerts · d dismisses the selected active alert"
+            if entries
+            else "No alerts recorded."
+        )
 
     def _render_system(self, snapshot: SystemSnapshot) -> None:
         """Present stable host facts separately from faster changing metrics."""

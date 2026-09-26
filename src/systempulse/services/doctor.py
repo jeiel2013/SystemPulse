@@ -7,6 +7,7 @@ from enum import StrEnum
 
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
+from systempulse.platform.paths import configuration_path, history_database_path
 from systempulse.services.monitor import create_default_session
 from systempulse.version import get_version
 
@@ -129,8 +130,16 @@ def assess_environment(
 
 def run_doctor(*, interactive_terminal: bool, color_system: str | None) -> DoctorReport:
     """Check actual collectors after CPU rates have had time to initialize."""
-    snapshot = asyncio.run(create_default_session().sample_after_warmup())
-    return assess_environment(
+    session = create_default_session()
+
+    async def sample_and_close() -> SystemSnapshot:
+        try:
+            return await session.sample_after_warmup()
+        finally:
+            await session.close()
+
+    snapshot = asyncio.run(sample_and_close())
+    report = assess_environment(
         snapshot,
         python_version=(
             sys.version_info.major,
@@ -141,4 +150,21 @@ def run_doctor(*, interactive_terminal: bool, color_system: str | None) -> Docto
         interactive_terminal=interactive_terminal,
         color_system=color_system,
         version=get_version(),
+    )
+    return DoctorReport(
+        report.version,
+        (
+            *report.checks,
+            DoctorCheck(
+                "Configuration",
+                CheckState.WARN if session.config_error else CheckState.PASS,
+                f"{configuration_path()} "
+                f"({session.config_error or 'defaults or valid local TOML'})",
+            ),
+            DoctorCheck(
+                "History database",
+                CheckState.WARN if session.history_error else CheckState.PASS,
+                f"{history_database_path()} ({session.history_error or 'accessible'})",
+            ),
+        ),
     )
