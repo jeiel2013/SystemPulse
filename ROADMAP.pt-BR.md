@@ -2,18 +2,16 @@
 
 [English](ROADMAP.md) | [Português Brasileiro](ROADMAP.pt-BR.md)
 
-Este plano descreve trabalho pretendido, não suporte já entregue. A versão
-fonte `0.1.0.dev0` atual inclui CPU, memória, processos, resumos de disco e
+Este plano descreve trabalho pretendido, não suporte já entregue. A prévia
+publicada `0.1.0.dev0` inclui CPU, memória, processos, resumos de disco e
 rede em tempo real, providers opcionais de hardware, histórico local, alertas
 por limites, árvore de processos, relatórios, CLI e TUI. O README descreve o
 comportamento e as limitações exatas.
 
-## Antes da primeira prévia publicada
+## Antes de uma versão estável
 
-- Confirmar a disponibilidade do nome e publicar a distribuição
-  `systempulse-monitor` depois de CI verde em Windows, Ubuntu e macOS.
 - Verificar interativamente layout, temas, resize, teclado e saída limpa em
-  terminais Linux e macOS.
+  terminais macOS e ampliar a cobertura de terminais no Windows e Linux.
 - Repetir medições longas de CPU/RAM e reduzir o custo da varredura periódica
   de processos.
 - Revisar wheel, pacote fonte, licença, notas de release e instruções de

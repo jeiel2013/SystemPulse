@@ -3,7 +3,7 @@
 [English](SECURITY.md) | [Português Brasileiro](SECURITY.pt-BR.md)
 
 SystemPulse is a development preview. Security fixes are made on the current
-development branch; there is no supported published release yet.
+development branch; there is no stable release yet.
 
 Please report a suspected vulnerability privately through
 [GitHub's private vulnerability reporting](https://github.com/jeiel2013/SystemPulse/security/advisories/new)

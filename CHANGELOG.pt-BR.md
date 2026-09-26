@@ -2,10 +2,9 @@
 
 [English](CHANGELOG.md) | [Português Brasileiro](CHANGELOG.pt-BR.md)
 
-As mudanças são agrupadas por release. O SystemPulse seguirá Semantic
-Versioning após começar a publicar versões.
+As mudanças são agrupadas por release. O SystemPulse segue Semantic Versioning.
 
-## Não publicado — prévia em código fonte 0.1.0.dev0
+## 0.1.0.dev0 — Versão de desenvolvimento
 
 - Overview em tempo real, explorador e detalhes de processos, árvore, troca de
   tema, navegação por teclado e layout responsivo.
@@ -18,5 +17,6 @@ Versioning após começar a publicar versões.
   relatórios estáticos e entry points experimentais de collectors opt-in.
 - Configuração de CI multiplataforma e teste isolado de instalação do wheel.
 
-Ainda não há publicação no PyPI. Validação interativa em Linux/macOS e redução
-do custo de CPU continuam como critérios de release.
+Disponível no [PyPI](https://pypi.org/project/systempulse-monitor/0.1.0.dev0/).
+A validação interativa no macOS e a redução do custo de CPU continuam pendentes
+antes de uma versão estável.

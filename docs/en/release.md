@@ -1,7 +1,8 @@
 # Release checks
 
 SystemPulse is a development preview. The package name is `systempulse-monitor`;
-its installed command is `systempulse`. No PyPI release has been published.
+its installed command is `systempulse`. Version `0.1.0.dev0` is available on
+[PyPI](https://pypi.org/project/systempulse-monitor/0.1.0.dev0/).
 
 The [CI workflow](../../.github/workflows/ci.yml) is configured for Ubuntu, Windows, and
 macOS. Each job checks Ruff, mypy, the CLI and TUI test suite, builds the source
@@ -34,8 +35,8 @@ that every terminal renders identically. The maintainer has reported successful
 interactive runs on Windows and Linux; macOS interactive validation remains
 open. Do not describe all terminal/OS combinations as fully validated yet.
 
-Before publishing, confirm the `systempulse-monitor` name can be used by this
-project on PyPI and configure a trusted publishing identity. Review the
+Before each release, verify the trusted publishing configuration for
+`systempulse-monitor` on PyPI. Review the
 [changelog](../../CHANGELOG.md) and [security policy](../../SECURITY.md), run
 the wheel smoke test, then exercise the installed `systempulse` command in a
 physical Windows, Linux, and macOS terminal. Check both themes, terminal
@@ -44,8 +45,11 @@ exit. The current Windows benchmark exceeds the initial idle CPU goal; repeat
 longer measurements before stating a performance guarantee. Publishing and
 pushing the current local commits are separate maintainer actions.
 
-After these checks, create and push a tag matching `pyproject.toml` exactly,
-such as `v0.1.0.dev0`. In the repository's GitHub **Actions** tab, open
+For a new release, first choose an unused version, update `pyproject.toml`,
+run `uv lock`, and update both changelogs. Complete the checks above and commit
+the changes. Create and push a tag matching `pyproject.toml` exactly, such as
+`v0.1.0.dev1` if the new version is `0.1.0.dev1`.
+In the repository's GitHub **Actions** tab, open
 **Publish to PyPI**, click **Run workflow**, leave the branch as `main`, and
 enter the tag in **Release tag**. Click **Run workflow** to start publication;
 approve the `pypi` environment if required. No GitHub CLI is needed.
@@ -57,3 +61,7 @@ fails checkout. Configure the
 GitHub `pypi` environment with a required reviewer and register this workflow
 as a [PyPI trusted publisher](https://docs.pypi.org/trusted-publishers/)
 before dispatch. No workflow runs publication on a normal push.
+
+A README change pushed to GitHub updates the repository page only. PyPI uses
+the README packaged with the release; publish a new version to update it.
+Do not reuse the already published `v0.1.0.dev0` tag for new contents.

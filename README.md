@@ -9,9 +9,9 @@ CPU, memory, process, and available GPU readings in a keyboard-driven terminal
 interface. It has no web dashboard, account, or telemetry. Sustained threshold
 rules produce factual observations and local alerts; `doctor` checks SystemPulse itself.
 
-> **Development preview:** Install from a source checkout. This project has not
-> been published to PyPI. Its distribution name is `systempulse-monitor`; the
-> installed command is `systempulse`.
+> **Development preview:** `0.1.0.dev0` is available on
+> [PyPI](https://pypi.org/project/systempulse-monitor/0.1.0.dev0/).
+> Install `systempulse-monitor`; run `systempulse`. Python 3.12+ is required.
 
 ## Install and run
 
@@ -35,14 +35,10 @@ Open a new terminal, then install Python 3.12 with uv:
 uv python install 3.12
 ```
 
-Clone [SystemPulse](https://github.com/jeiel2013/SystemPulse) (or enter an
-existing checkout), then install the command and add uv's tool directory to
-your `PATH`:
+Install the published preview and add uv's tool directory to your `PATH`:
 
 ```sh
-git clone https://github.com/jeiel2013/SystemPulse.git
-cd SystemPulse
-uv tool install --python 3.12 .
+uv tool install --python 3.12 "systempulse-monitor==0.1.0.dev0"
 uv tool update-shell
 ```
 
@@ -55,6 +51,31 @@ systempulse
 The command opens the TUI in an interactive terminal. uv is only needed to
 install or update SystemPulse; daily use does not require `uv run`. No
 configuration or elevated permissions are needed for the default experience.
+
+Already use pipx with Python 3.12+? Install with:
+
+```sh
+pipx install "systempulse-monitor==0.1.0.dev0"
+systempulse
+```
+
+Use `systempulse-monitor` as the package name; `systempulse` on PyPI belongs to
+another project. If you previously installed this project from a checkout,
+add `--reinstall` to the uv install command to switch to the published package.
+
+<details>
+<summary>Install the latest source code</summary>
+
+```sh
+git clone https://github.com/jeiel2013/SystemPulse.git
+cd SystemPulse
+uv tool install --reinstall --python 3.12 .
+uv tool update-shell
+```
+
+For development, use `uv sync --locked` followed by `uv run systempulse`.
+
+</details>
 
 ## What you can see
 
@@ -126,9 +147,9 @@ supports truecolor but reports fewer colors, run
 
 ## Current scope
 
-The TUI and CLI have been run on Windows. Linux and macOS are target platforms;
-their interactive validation is pending. CI is configured to run tests, package
-builds, and isolated tool-install checks on all three platforms. See
+The maintainer has tested the TUI and CLI on Windows and Linux. CI has passed
+tests, package builds, and isolated tool-install checks on Windows, Ubuntu,
+and macOS. Interactive macOS validation remains pending. See
 [alerts and configuration](docs/en/alerts.md), [history storage](docs/en/history.md) and
 [release checks](docs/en/release.md).
 See [reports](docs/en/reports.md) for export formats and locations.

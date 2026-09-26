@@ -3,7 +3,7 @@
 [English](SECURITY.md) | [Português Brasileiro](SECURITY.pt-BR.md)
 
 O SystemPulse está em desenvolvimento. Correções de segurança são feitas no
-branch de desenvolvimento atual; ainda não há versão publicada com suporte.
+branch de desenvolvimento atual; ainda não há versão estável.
 
 Relate suspeitas de vulnerabilidade em particular pelo
 [canal privado de vulnerabilidades do GitHub](https://github.com/jeiel2013/SystemPulse/security/advisories/new),

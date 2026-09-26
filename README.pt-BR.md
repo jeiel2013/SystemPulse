@@ -10,9 +10,9 @@ de terminal controlada pelo teclado. Não há dashboard web, conta ou telemetria
 Regras de limite sustentado produzem observações factuais e alertas locais;
 `doctor` verifica o próprio SystemPulse.
 
-> **Versão de desenvolvimento:** instale a partir de uma cópia do repositório.
-> O projeto ainda não foi publicado no PyPI. O nome da distribuição é
-> `systempulse-monitor`; o comando instalado é `systempulse`.
+> **Versão de desenvolvimento:** `0.1.0.dev0` está disponível no
+> [PyPI](https://pypi.org/project/systempulse-monitor/0.1.0.dev0/).
+> Instale `systempulse-monitor`; execute `systempulse`. Requer Python 3.12+.
 
 ## Instalação e uso
 
@@ -36,14 +36,10 @@ Abra um novo terminal e instale o Python 3.12 com o uv:
 uv python install 3.12
 ```
 
-Clone o [SystemPulse](https://github.com/jeiel2013/SystemPulse) (ou entre em
-uma cópia existente), instale o comando e adicione o diretório de ferramentas
-do uv ao `PATH`:
+Instale a prévia publicada e adicione o diretório de ferramentas do uv ao `PATH`:
 
 ```sh
-git clone https://github.com/jeiel2013/SystemPulse.git
-cd SystemPulse
-uv tool install --python 3.12 .
+uv tool install --python 3.12 "systempulse-monitor==0.1.0.dev0"
 uv tool update-shell
 ```
 
@@ -56,6 +52,31 @@ systempulse
 O comando abre a TUI em um terminal interativo. O uv só é necessário para
 instalar ou atualizar o SystemPulse; no uso diário, `uv run` não é necessário.
 A experiência padrão dispensa configuração e permissões elevadas.
+
+Já usa pipx com Python 3.12+? Instale com:
+
+```sh
+pipx install "systempulse-monitor==0.1.0.dev0"
+systempulse
+```
+
+Use `systempulse-monitor` como nome do pacote; `systempulse` no PyPI pertence
+a outro projeto. Se você instalou este projeto a partir de uma cópia local,
+adicione `--reinstall` ao comando de instalação do uv para usar o pacote publicado.
+
+<details>
+<summary>Instalar o código-fonte mais recente</summary>
+
+```sh
+git clone https://github.com/jeiel2013/SystemPulse.git
+cd SystemPulse
+uv tool install --reinstall --python 3.12 .
+uv tool update-shell
+```
+
+Para desenvolvimento, use `uv sync --locked` e depois `uv run systempulse`.
+
+</details>
 
 ## O que é exibido
 
@@ -132,9 +153,9 @@ truecolor, mas informa menos cores, execute
 
 ## Estado atual
 
-A TUI e a CLI foram executadas no Windows. Linux e macOS são plataformas alvo;
-a validação interativa nelas ainda está pendente. O CI foi configurado para
-executar testes, builds e verificações de instalação isolada nos três sistemas.
+O mantenedor testou a TUI e a CLI no Windows e Linux. O CI passou nos testes,
+builds e verificações de instalação isolada em Windows, Ubuntu e macOS.
+A validação interativa no macOS ainda está pendente.
 Veja [alertas e configuração](docs/pt-BR/alerts.md), o
 [armazenamento do histórico](docs/pt-BR/history.md) e as
 [verificações de release](docs/pt-BR/release.md).

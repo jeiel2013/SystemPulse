@@ -2,10 +2,9 @@
 
 [English](CHANGELOG.md) | [Português Brasileiro](CHANGELOG.pt-BR.md)
 
-Changes are grouped by release. SystemPulse follows Semantic Versioning once
-releases are published.
+Changes are grouped by release. SystemPulse follows Semantic Versioning.
 
-## Unreleased — 0.1.0.dev0 source preview
+## 0.1.0.dev0 — Development preview
 
 - Live terminal overview, process explorer, details, tree, theme switching,
   keyboard navigation, and responsive layout.
@@ -18,5 +17,6 @@ releases are published.
   export, and opt-in experimental collector entry points.
 - Cross-platform CI configuration and isolated wheel-install smoke checks.
 
-There is no PyPI release yet. Interactive Linux and macOS validation and CPU
-cost reduction remain open release gates.
+Available on [PyPI](https://pypi.org/project/systempulse-monitor/0.1.0.dev0/).
+Interactive macOS validation and CPU cost reduction remain open work before
+a stable release.
