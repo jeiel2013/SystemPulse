@@ -136,8 +136,10 @@ Collector plugins are opt-in; see [plugin development](docs/en/plugins.md).
 
 Typed collectors feed application state, then Textual and the CLI. Collection
 runs outside the UI loop. SystemPulse keeps metrics on the machine and does not
-perform destructive actions. See the [process scan benchmark](docs/en/benchmarking.md)
-for the current measurement method.
+perform destructive actions. See the [runtime benchmark](docs/en/benchmarking.md)
+for measurements and current performance limits. The
+[architecture](docs/en/architecture.md) and
+[development](docs/en/development.md) guides explain the codebase.
 
 ## Contribute
 
@@ -145,4 +147,5 @@ Run `uv run pytest`, `uv run ruff check .`, and `uv run mypy` before proposing
 changes. Code and canonical documentation are in English; public documentation
 also has a pt-BR version. When translations differ, the English version prevails.
 
-Licensed under [Apache 2.0](LICENSE).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow. Licensed
+under [Apache 2.0](LICENSE).

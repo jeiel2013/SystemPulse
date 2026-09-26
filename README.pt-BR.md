@@ -145,8 +145,9 @@ Plugins de coleta exigem ativação explícita; consulte
 Collectors tipados alimentam o estado da aplicação, que abastece Textual e a
 CLI. A coleta executa fora do loop da interface. As métricas permanecem na
 máquina e o SystemPulse não realiza ações destrutivas. Consulte o
-[benchmark da varredura de processos](docs/pt-BR/benchmarking.md) para a
-metodologia atual de medição.
+[benchmark de execução](docs/pt-BR/benchmarking.md) para medições e limites
+atuais. Os guias de [arquitetura](docs/pt-BR/architecture.md) e
+[desenvolvimento](docs/pt-BR/development.md) explicam o código.
 
 ## Contribuição
 
@@ -155,4 +156,5 @@ alterações. Código e documentação principal são escritos em inglês; a
 documentação pública também possui versão pt-BR. Em caso de divergência,
 prevalece a versão inglesa.
 
-Licenciado sob [Apache 2.0](LICENSE).
+Veja [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md) para contribuir. Licenciado
+sob [Apache 2.0](LICENSE).
