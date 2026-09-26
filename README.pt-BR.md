@@ -156,5 +156,8 @@ alterações. Código e documentação principal são escritos em inglês; a
 documentação pública também possui versão pt-BR. Em caso de divergência,
 prevalece a versão inglesa.
 
-Veja [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md) para contribuir. Licenciado
-sob [Apache 2.0](LICENSE).
+Veja [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md) para contribuir, o
+[roadmap](ROADMAP.pt-BR.md) para os próximos passos e o
+[histórico de alterações](CHANGELOG.pt-BR.md) para as mudanças entregues.
+Relate vulnerabilidades conforme a [política de segurança](SECURITY.pt-BR.md).
+Licenciado sob [Apache 2.0](LICENSE).

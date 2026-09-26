@@ -147,5 +147,7 @@ Run `uv run pytest`, `uv run ruff check .`, and `uv run mypy` before proposing
 changes. Code and canonical documentation are in English; public documentation
 also has a pt-BR version. When translations differ, the English version prevails.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow. Licensed
-under [Apache 2.0](LICENSE).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow, the
+[roadmap](ROADMAP.md) for planned work, and the [changelog](CHANGELOG.md) for
+shipped changes. Report vulnerabilities through the [security policy](SECURITY.md).
+Licensed under [Apache 2.0](LICENSE).
