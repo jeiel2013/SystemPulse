@@ -73,15 +73,17 @@ are not implemented yet. See [GPU collection](docs/en/gpu.md).
 
 ```sh
 systempulse status
+systempulse top --sort memory --limit 10
 systempulse processes --sort memory --limit 10
 systempulse processes --search python
 systempulse doctor
 systempulse version
 ```
 
-`status` prints one system snapshot. `processes` prints a filtered process
-list. `doctor` checks the runtime, collectors, GPU provider, and terminal.
-These commands exit after printing their result.
+`status` prints one system snapshot. `top` refreshes a compact process monitor
+every second; press `q` or `Ctrl+C` to leave it. It requires an interactive
+terminal. `processes` prints a filtered list. `doctor` checks the runtime,
+collectors, GPU provider, and terminal. The other commands exit after printing.
 
 ## Keyboard shortcuts
 
@@ -105,8 +107,9 @@ supports truecolor but reports fewer colors, run
 ## Current scope
 
 The TUI and CLI have been run on Windows. Linux and macOS are target platforms;
-their validation is pending. Disk, network, history, alerts, and the continuous
-`top` command are not implemented yet. Cross-platform CI and `top` are next.
+their interactive validation is pending. CI is configured to run tests, package
+builds, and isolated tool-install checks on all three platforms. Disk, network,
+history, and alerts are not implemented yet. See [release checks](docs/en/release.md).
 
 Typed collectors feed application state, then Textual and the CLI. Collection
 runs outside the UI loop. SystemPulse keeps metrics on the machine and does not

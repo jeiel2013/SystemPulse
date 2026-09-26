@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-and-install:
+    name: Python 3.12 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v9
+        with:
+          version: "0.12.19"
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install project and development tools
+        run: uv sync --locked
+      - name: Lint and format
+        run: |
+          uv run --locked ruff check .
+          uv run --locked ruff format --check .
+      - name: Typecheck
+        run: uv run --locked mypy
+      - name: Test CLI and TUI
+        run: uv run --locked pytest -q
+      - name: Build source and wheel distributions
+        run: uv build --no-sources
+      - name: Install wheel and smoke-test console command
+        run: uv run --locked python scripts/smoke_install.py

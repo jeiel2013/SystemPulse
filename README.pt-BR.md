@@ -74,15 +74,18 @@ e Intel ainda não foram implementados. Veja a [coleta de GPU](docs/pt-BR/gpu.md
 
 ```sh
 systempulse status
+systempulse top --sort memory --limit 10
 systempulse processes --sort memory --limit 10
 systempulse processes --search python
 systempulse doctor
 systempulse version
 ```
 
-`status` mostra um snapshot do sistema. `processes` lista processos com filtros.
-`doctor` verifica o ambiente, os collectors, o provider de GPU e o terminal.
-Esses comandos encerram após mostrar o resultado.
+`status` mostra um snapshot do sistema. `top` atualiza um monitor compacto de
+processos a cada segundo; use `q` ou `Ctrl+C` para sair. Ele exige terminal
+interativo. `processes` lista processos com filtros. `doctor` verifica o
+ambiente, os collectors, o provider de GPU e o terminal. Os demais comandos
+encerram após mostrar o resultado.
 
 ## Atalhos de teclado
 
@@ -106,9 +109,10 @@ truecolor, mas informa menos cores, execute
 ## Estado atual
 
 A TUI e a CLI foram executadas no Windows. Linux e macOS são plataformas alvo;
-a validação nelas ainda está pendente. Disco, rede, histórico, alertas e o
-comando contínuo `top` ainda não foram implementados. CI multiplataforma e `top`
-são os próximos passos.
+a validação interativa nelas ainda está pendente. O CI foi configurado para
+executar testes, builds e verificações de instalação isolada nos três sistemas.
+Disco, rede, histórico e alertas ainda não foram implementados. Veja as
+[verificações de release](docs/pt-BR/release.md).
 
 Collectors tipados alimentam o estado da aplicação, que abastece Textual e a
 CLI. A coleta executa fora do loop da interface. As métricas permanecem na
