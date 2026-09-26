@@ -674,7 +674,7 @@ wheels = [
 
 [[package]]
 name = "systempulse-monitor"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "platformdirs" },

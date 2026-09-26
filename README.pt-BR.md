@@ -10,8 +10,8 @@ de terminal controlada pelo teclado. Não há dashboard web, conta ou telemetria
 Regras de limite sustentado produzem observações factuais e alertas locais;
 `doctor` verifica o próprio SystemPulse.
 
-> **Versão de desenvolvimento:** `0.1.0.dev0` está disponível no
-> [PyPI](https://pypi.org/project/systempulse-monitor/0.1.0.dev0/).
+> **Versão de desenvolvimento:** `0.1.0.dev1`.
+> [Pacote no PyPI](https://pypi.org/project/systempulse-monitor/).
 > Instale `systempulse-monitor`; execute `systempulse`. Requer Python 3.12+.
 
 ## Instalação e uso
@@ -39,7 +39,7 @@ uv python install 3.12
 Instale a prévia publicada e adicione o diretório de ferramentas do uv ao `PATH`:
 
 ```sh
-uv tool install --python 3.12 "systempulse-monitor==0.1.0.dev0"
+uv tool install --python 3.12 "systempulse-monitor==0.1.0.dev1"
 uv tool update-shell
 ```
 
@@ -56,7 +56,7 @@ A experiência padrão dispensa configuração e permissões elevadas.
 Já usa pipx com Python 3.12+? Instale com:
 
 ```sh
-pipx install "systempulse-monitor==0.1.0.dev0"
+pipx install "systempulse-monitor==0.1.0.dev1"
 systempulse
 ```
 

@@ -4,6 +4,14 @@
 
 Changes are grouped by release. SystemPulse follows Semantic Versioning.
 
+## 0.1.0.dev1 — Documentation update
+
+- Document installation from PyPI using uv or pipx and running `systempulse`
+  directly, with source installation as an alternative.
+- Update the English and Brazilian Portuguese documentation with publication
+  status, Windows/Linux manual testing, and successful CI on all three systems.
+- Explain how to publish subsequent versions and update the README on PyPI.
+
 ## 0.1.0.dev0 — Development preview
 
 - Live terminal overview, process explorer, details, tree, theme switching,

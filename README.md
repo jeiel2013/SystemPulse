@@ -9,8 +9,8 @@ CPU, memory, process, and available GPU readings in a keyboard-driven terminal
 interface. It has no web dashboard, account, or telemetry. Sustained threshold
 rules produce factual observations and local alerts; `doctor` checks SystemPulse itself.
 
-> **Development preview:** `0.1.0.dev0` is available on
-> [PyPI](https://pypi.org/project/systempulse-monitor/0.1.0.dev0/).
+> **Development preview:** `0.1.0.dev1`.
+> [PyPI package](https://pypi.org/project/systempulse-monitor/).
 > Install `systempulse-monitor`; run `systempulse`. Python 3.12+ is required.
 
 ## Install and run
@@ -38,7 +38,7 @@ uv python install 3.12
 Install the published preview and add uv's tool directory to your `PATH`:
 
 ```sh
-uv tool install --python 3.12 "systempulse-monitor==0.1.0.dev0"
+uv tool install --python 3.12 "systempulse-monitor==0.1.0.dev1"
 uv tool update-shell
 ```
 
@@ -55,7 +55,7 @@ configuration or elevated permissions are needed for the default experience.
 Already use pipx with Python 3.12+? Install with:
 
 ```sh
-pipx install "systempulse-monitor==0.1.0.dev0"
+pipx install "systempulse-monitor==0.1.0.dev1"
 systempulse
 ```
 
