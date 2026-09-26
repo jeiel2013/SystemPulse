@@ -172,9 +172,13 @@ async def test_top_memory_remains_reachable_in_short_terminal() -> None:
         body = app.query_one("#body", VerticalScroll)
         assert app.focused is body
         assert app.query_one("#top-memory-processes", DataTable).region.y >= 20
+        for _ in range(10):
+            if body.max_scroll_y > 0:
+                break
+            await pilot.pause(0.05)
+        assert body.max_scroll_y > 0
         await pilot.press("pagedown")
-        await pilot.wait_for_scheduled_animations()
-        assert body.scroll_y > 0
+        assert body.scroll_target_y > 0
 
 
 @pytest.mark.asyncio
