@@ -31,6 +31,12 @@ dependencies = [
     "typer>=0.24,<1",
 ]
 
+[project.urls]
+Homepage = "https://github.com/jeiel2013/SystemPulse"
+Repository = "https://github.com/jeiel2013/SystemPulse"
+Issues = "https://github.com/jeiel2013/SystemPulse/issues"
+Changelog = "https://github.com/jeiel2013/SystemPulse/blob/main/CHANGELOG.md"
+
 [project.scripts]
 systempulse = "systempulse.cli:main"
 
@@ -48,7 +54,23 @@ dev = [
 packages = ["src/systempulse"]
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src/systempulse", "tests", "scripts", "docs", "README.pt-BR.md"]
+only-include = [
+    "src/systempulse",
+    "tests",
+    "scripts",
+    "docs",
+    "README.pt-BR.md",
+    "CONTRIBUTING.md",
+    "CONTRIBUTING.pt-BR.md",
+    "CODE_OF_CONDUCT.md",
+    "CODE_OF_CONDUCT.pt-BR.md",
+    "SECURITY.md",
+    "SECURITY.pt-BR.md",
+    "CHANGELOG.md",
+    "CHANGELOG.pt-BR.md",
+    "ROADMAP.md",
+    "ROADMAP.pt-BR.md",
+]
 
 [tool.ruff]
 target-version = "py312"

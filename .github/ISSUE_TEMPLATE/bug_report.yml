@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a reproducible SystemPulse problem
+body:
+  - type: markdown
+    attributes:
+      value: Please remove hostnames, usernames, paths, commands, and other private data from logs or screenshots. Report vulnerabilities privately as described in SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: SystemPulse version
+      description: Output of `systempulse version`
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS and terminal
+      placeholder: Windows 11 / Windows Terminal, Ubuntu / GNOME Terminal, macOS / iTerm2
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Include doctor output, traceback, or a screenshot if useful.

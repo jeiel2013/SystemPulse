@@ -1,0 +1,22 @@
+name: Feature request
+description: Propose an observable, terminal-first improvement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What question should SystemPulse help answer?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe CLI/TUI behavior and the measurable source of truth.
+    validations:
+      required: true
+  - type: textarea
+    id: platforms
+    attributes:
+      label: Platform and availability considerations
+      description: Which operating systems can provide this metric or capability?

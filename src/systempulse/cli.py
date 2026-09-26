@@ -49,6 +49,7 @@ console = Console()
 
 def _sample() -> SystemSnapshot:
     """Observe two cycles to calculate nonblocking CPU rates."""
+
     async def observe() -> SystemSnapshot:
         session = create_default_session()
         try:
@@ -255,6 +256,7 @@ def top(
     if not sys.stdin.isatty() or not sys.stdout.isatty():
         typer.echo("SystemPulse top needs an interactive terminal.", err=True)
         raise typer.Exit(code=1)
+
     async def monitor() -> None:
         session = create_default_session()
         try:
