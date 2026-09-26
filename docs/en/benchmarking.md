@@ -44,10 +44,11 @@ and collector-cycle latency. These numbers include Python startup inside each
 phase and benchmark instrumentation. Headless Textual rendering is not the
 same as a physical terminal. End-of-phase RSS is not a peak measurement.
 
-On the same Windows host, one 10-second run after the process-scan change
-measured 25.7% of one core and 82.7 MiB RSS for collectors, and 32.3% of one
-core and 91.9 MiB RSS for the headless TUI. Each phase wrote 10 history rows;
+On the same Windows host, one 10-second run after the process-scan and state
+changes measured 25.7% of one core and 79.1 MiB RSS for collectors, and 30.5%
+of one core and 89.6 MiB RSS for the headless TUI. Each phase wrote 10 history
+rows;
 the SQLite files occupied about 20 KiB at measurement time. Collector cycles
-had a 0.23-second median and a 0.66-second maximum. The CPU cost remains above
+had a 0.22-second median and a 0.70-second maximum. The CPU cost remains above
 the initial low-overhead goal; longer runs and interactive Linux/macOS
 measurements are needed before making a release-level performance claim.

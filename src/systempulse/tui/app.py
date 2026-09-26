@@ -468,8 +468,7 @@ class PulseApp(App[None]):
                 f"Temp {format_temperature(gpu.temperature_celsius)}"
             )
         history = tuple(
-            sample.metrics.cpu.total_percent if sample.metrics.cpu else None
-            for sample in self.session.state.recent_snapshots
+            sample.cpu_percent for sample in self.session.state.recent_samples
         )
         history_text = cpu_sparkline(history) if history else "Waiting for samples"
         self.query_one("#cpu-history", Static).update(f"CPU ACTIVITY\n{history_text}")

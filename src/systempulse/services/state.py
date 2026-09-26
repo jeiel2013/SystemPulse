@@ -1,11 +1,22 @@
 """Small in-memory application state shared by terminal views."""
 
 from collections import deque
+from dataclasses import dataclass
+from datetime import datetime
 
 from systempulse.domain.analysis import Alert, AlertState, Observation
 from systempulse.domain.availability import CollectorStatus
 from systempulse.domain.processes import ProcessIdentity, ProcessMetrics
 from systempulse.domain.snapshots import SystemSnapshot
+
+
+@dataclass(frozen=True, slots=True)
+class RecentMetricSample:
+    """Small chart sample that does not retain a full process table."""
+
+    sampled_at: datetime
+    cpu_percent: float | None
+    memory_percent: float | None
 
 
 class ApplicationState:
@@ -14,7 +25,8 @@ class ApplicationState:
     def __init__(self, history_limit: int = 60) -> None:
         if history_limit < 1:
             raise ValueError("history_limit must be positive")
-        self._recent: deque[SystemSnapshot] = deque(maxlen=history_limit)
+        self._current: SystemSnapshot | None = None
+        self._recent: deque[RecentMetricSample] = deque(maxlen=history_limit)
         self.selected_process: ProcessIdentity | None = None
         self._observations: deque[Observation] = deque(maxlen=100)
         self._alerts: deque[Alert] = deque(maxlen=100)
@@ -61,11 +73,11 @@ class ApplicationState:
     @property
     def current_snapshot(self) -> SystemSnapshot | None:
         """Return the last complete snapshot, if collection has started."""
-        return self._recent[-1] if self._recent else None
+        return self._current
 
     @property
-    def recent_snapshots(self) -> tuple[SystemSnapshot, ...]:
-        """Return recent snapshots oldest first for charts."""
+    def recent_samples(self) -> tuple[RecentMetricSample, ...]:
+        """Return bounded CPU and memory readings oldest first for charts."""
         return tuple(self._recent)
 
     @property
@@ -98,6 +110,13 @@ class ApplicationState:
         current = self.current_snapshot
         if current is not None and snapshot.created_at < current.created_at:
             raise ValueError("snapshot time moved backwards")
-        self._recent.append(snapshot)
+        self._current = snapshot
+        self._recent.append(
+            RecentMetricSample(
+                snapshot.created_at,
+                snapshot.metrics.cpu.total_percent if snapshot.metrics.cpu else None,
+                snapshot.metrics.memory.percent if snapshot.metrics.memory else None,
+            )
+        )
         if snapshot.processes is not None and self.selected_process_metrics is None:
             self.selected_process = None

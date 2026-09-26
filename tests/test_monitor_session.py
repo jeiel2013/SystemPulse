@@ -40,14 +40,17 @@ async def test_session_publishes_failed_collector_status() -> None:
 
 
 @pytest.mark.asyncio
-async def test_session_retains_recent_snapshots() -> None:
+async def test_session_retains_small_recent_samples() -> None:
     registry = CollectorRegistry()
     session = MonitorSession(registry)
 
     first = await session.sample()
     second = await session.sample()
 
-    assert session.state.recent_snapshots == (first, second)
+    assert tuple(sample.sampled_at for sample in session.state.recent_samples) == (
+        first.created_at,
+        second.created_at,
+    )
     assert second.created_at >= first.created_at
 
 

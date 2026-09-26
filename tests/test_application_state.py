@@ -44,9 +44,10 @@ def test_state_keeps_only_configured_history() -> None:
     for offset in range(3):
         state.update(_snapshot(start + timedelta(seconds=offset)))
 
-    assert len(state.recent_snapshots) == 2
-    assert state.recent_snapshots[0].created_at == start + timedelta(seconds=1)
-    assert state.current_snapshot == state.recent_snapshots[-1]
+    assert len(state.recent_samples) == 2
+    assert state.recent_samples[0].sampled_at == start + timedelta(seconds=1)
+    assert state.current_snapshot == _snapshot(start + timedelta(seconds=2))
+    assert state.recent_samples[-1].cpu_percent is None
 
 
 def test_selection_does_not_follow_reused_pid() -> None:

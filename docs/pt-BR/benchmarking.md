@@ -45,11 +45,12 @@ do SQLite, além da duração dos ciclos de coleta. Os valores incluem
 instrumentação e inicialização dentro de cada fase. A renderização headless
 difere de um terminal físico. A memória no fim da fase não representa o pico.
 
-No mesmo Windows, uma execução de 10 segundos após a mudança na varredura
-mediu 25,7% de um núcleo e 82,7 MiB de RAM para os coletores; a TUI headless
-mediu 32,3% de um núcleo e 91,9 MiB. Cada fase gravou 10 linhas de histórico;
+No mesmo Windows, uma execução de 10 segundos após as mudanças na varredura e
+no estado mediu 25,7% de um núcleo e 79,1 MiB de RAM para os coletores; a TUI
+headless mediu 30,5% de um núcleo e 89,6 MiB. Cada fase gravou 10 linhas de
+histórico;
 os arquivos SQLite ocupavam cerca de 20 KiB naquele momento. Os ciclos de
-coleta tiveram mediana de 0,23 segundo e máximo de 0,66 segundo. O custo de
+coleta tiveram mediana de 0,22 segundo e máximo de 0,70 segundo. O custo de
 CPU ainda excede a meta inicial de baixo consumo. Precisamos de execuções mais
 longas e medições interativas no Linux/macOS antes de afirmar desempenho para
 uma release.
