@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from platformdirs import user_data_path
+from platformdirs import user_config_path, user_data_path
 
 
 def history_database_path() -> Path:
@@ -10,4 +10,12 @@ def history_database_path() -> Path:
     return (
         user_data_path("SystemPulse", appauthor=False, ensure_exists=False)
         / "history.sqlite3"
+    )
+
+
+def configuration_path() -> Path:
+    """Find the optional per-user TOML settings file."""
+    return (
+        user_config_path("SystemPulse", appauthor=False, ensure_exists=False)
+        / "config.toml"
     )
