@@ -30,8 +30,9 @@ variables are unset.
 
 Publication requires green CI jobs on all three operating systems and a review
 of the built artifacts and release notes. Automated TUI tests do not establish
-that every terminal renders identically; interactive Linux and macOS validation
-remains open. Do not describe that support as fully validated yet.
+that every terminal renders identically. The maintainer has reported successful
+interactive runs on Windows and Linux; macOS interactive validation remains
+open. Do not describe all terminal/OS combinations as fully validated yet.
 
 Before publishing, confirm the `systempulse-monitor` name can be used by this
 project on PyPI and configure a trusted publishing identity. Review the
@@ -43,11 +44,16 @@ exit. The current Windows benchmark exceeds the initial idle CPU goal; repeat
 longer measurements before stating a performance guarantee. Publishing and
 pushing the current local commits are separate maintainer actions.
 
-After these checks, create a tag matching `pyproject.toml` exactly, such as
-`v0.1.0.dev0`, and manually dispatch
-[Publish to PyPI](../../.github/workflows/publish.yml) from that tag. The
-workflow rejects a mismatched tag, reruns quality checks, builds and tests the
-distribution, then publishes through PyPI Trusted Publishing. Configure the
+After these checks, create and push a tag matching `pyproject.toml` exactly,
+such as `v0.1.0.dev0`. In the repository's GitHub **Actions** tab, open
+**Publish to PyPI**, click **Run workflow**, leave the branch as `main`, and
+enter the tag in **Release tag**. Click **Run workflow** to start publication;
+approve the `pypi` environment if required. No GitHub CLI is needed.
+
+The [workflow](../../.github/workflows/publish.yml) checks out the requested
+tag, rejects a version mismatch, reruns quality checks, builds and tests the
+distribution, then publishes through PyPI Trusted Publishing. A missing tag
+fails checkout. Configure the
 GitHub `pypi` environment with a required reviewer and register this workflow
 as a [PyPI trusted publisher](https://docs.pypi.org/trusted-publishers/)
 before dispatch. No workflow runs publication on a normal push.

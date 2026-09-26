@@ -32,9 +32,10 @@ apropriados para cada sistema.
 
 A publicação exige jobs verdes nos três sistemas e revisão dos artefatos e das
 notas de release. Testes automatizados da TUI não comprovam que todos os
-terminais renderizam de forma idêntica; a validação interativa no Linux e no
-macOS continua pendente. Esse suporte ainda não deve ser descrito como
-totalmente validado.
+terminais renderizam de forma idêntica. O mantenedor relatou execuções
+interativas bem-sucedidas no Windows e Linux; a validação interativa no macOS
+continua pendente. Ainda não devemos afirmar validação de todas as combinações
+de sistemas e terminais.
 
 Antes de publicar, confirme que este projeto pode usar o nome
 `systempulse-monitor` no PyPI e configure uma identidade de publicação
@@ -47,11 +48,16 @@ no Windows excede a meta inicial de CPU ociosa; repita medições mais longas
 antes de afirmar um desempenho garantido. Publicar e enviar os commits locais
 são ações separadas de manutenção.
 
-Depois dessas verificações, crie uma tag idêntica à versão do `pyproject.toml`,
-como `v0.1.0.dev0`, e acione manualmente o workflow
-[Publish to PyPI](../../.github/workflows/publish.yml) a partir dessa tag. O
-workflow rejeita tags divergentes, repete as verificações, gera e testa a
-distribuição e publica por Trusted Publishing. Configure o ambiente GitHub
+Depois dessas verificações, crie e envie uma tag idêntica à versão do
+`pyproject.toml`, como `v0.1.0.dev0`. Na aba **Actions** do repositório, abra
+**Publish to PyPI**, clique em **Run workflow**, mantenha o branch `main` e
+preencha **Release tag** com a tag. Clique em **Run workflow** para iniciar a
+publicação; aprove o ambiente `pypi` se solicitado. Não é necessário GitHub CLI.
+
+O [workflow](../../.github/workflows/publish.yml) faz checkout da tag informada,
+rejeita divergências de versão, repete as verificações, gera e testa a
+distribuição e publica por Trusted Publishing. Uma tag inexistente falha no
+checkout. Configure o ambiente GitHub
 `pypi` com revisão obrigatória e cadastre esse workflow como
 [publicador confiável no PyPI](https://docs.pypi.org/trusted-publishers/)
 antes de acioná-lo. Um push comum não publica o pacote.
