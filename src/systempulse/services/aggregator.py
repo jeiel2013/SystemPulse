@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from systempulse.collectors.base import CollectionResult
 from systempulse.domain.gpu import GpuSnapshot
+from systempulse.domain.io import DiskMetrics, NetworkMetrics
 from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import ProcessSnapshot
 from systempulse.domain.snapshots import MetricSnapshot, SystemSnapshot
@@ -21,6 +22,8 @@ class MetricAggregator:
         processes: ProcessSnapshot | None = None
         system: SystemMetrics | None = None
         gpu: GpuSnapshot | None = None
+        disk: DiskMetrics | None = None
+        network: NetworkMetrics | None = None
         seen: set[str] = set()
         statuses = tuple(result.status for result in results)
 
@@ -50,11 +53,25 @@ class MetricAggregator:
                 if metric is not None and not isinstance(metric, GpuSnapshot):
                     raise TypeError("gpu collector returned an unexpected metric")
                 gpu = metric
+            elif name == "disk":
+                if metric is not None and not isinstance(metric, DiskMetrics):
+                    raise TypeError("disk collector returned an unexpected metric")
+                disk = metric
+            elif name == "network":
+                if metric is not None and not isinstance(metric, NetworkMetrics):
+                    raise TypeError("network collector returned an unexpected metric")
+                network = metric
 
         created_at = datetime.now(UTC)
         return SystemSnapshot(
             created_at=created_at,
-            metrics=MetricSnapshot(created_at=created_at, cpu=cpu, memory=memory),
+            metrics=MetricSnapshot(
+                created_at=created_at,
+                cpu=cpu,
+                memory=memory,
+                disk=disk,
+                network=network,
+            ),
             processes=processes,
             system=system,
             collector_statuses=statuses,

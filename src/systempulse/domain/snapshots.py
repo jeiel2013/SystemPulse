@@ -6,6 +6,7 @@ from datetime import datetime
 from systempulse.domain._validation import require_utc
 from systempulse.domain.availability import CollectorStatus
 from systempulse.domain.gpu import GpuSnapshot
+from systempulse.domain.io import DiskMetrics, NetworkMetrics
 from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import ProcessSnapshot
 
@@ -17,6 +18,8 @@ class MetricSnapshot:
     created_at: datetime
     cpu: CpuMetrics | None
     memory: MemoryMetrics | None
+    disk: DiskMetrics | None = None
+    network: NetworkMetrics | None = None
 
     def __post_init__(self) -> None:
         require_utc(self.created_at, "created_at")

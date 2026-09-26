@@ -3,8 +3,10 @@
 import asyncio
 
 from systempulse.collectors.cpu import CpuCollector
+from systempulse.collectors.disk import DiskCollector
 from systempulse.collectors.gpu.collector import GpuCollector
 from systempulse.collectors.memory import MemoryCollector
+from systempulse.collectors.network import NetworkCollector
 from systempulse.collectors.processes import ProcessCollector
 from systempulse.collectors.registry import CollectorRegistry
 from systempulse.collectors.system import SystemCollector
@@ -51,6 +53,8 @@ def create_default_session() -> MonitorSession:
     registry = CollectorRegistry()
     registry.register(CpuCollector())
     registry.register(MemoryCollector())
+    registry.register(DiskCollector())
+    registry.register(NetworkCollector())
     registry.register(ProcessCollector())
     registry.register(SystemCollector())
     registry.register(GpuCollector())
