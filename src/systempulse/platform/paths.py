@@ -19,3 +19,10 @@ def configuration_path() -> Path:
         user_config_path("SystemPulse", appauthor=False, ensure_exists=False)
         / "config.toml"
     )
+
+
+def reports_directory() -> Path:
+    """Keep generated reports in the user's application data directory."""
+    return (
+        user_data_path("SystemPulse", appauthor=False, ensure_exists=False) / "reports"
+    )

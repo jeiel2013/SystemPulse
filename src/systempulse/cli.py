@@ -3,6 +3,7 @@
 import asyncio
 import sys
 from contextlib import suppress
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -26,6 +27,7 @@ from systempulse.presentation import (
     format_temperature,
     format_uptime,
 )
+from systempulse.reports.export import ReportFormat, build_report, write_report
 from systempulse.services.doctor import CheckState, run_doctor
 from systempulse.services.monitor import create_default_session
 from systempulse.services.process_query import (
@@ -357,6 +359,26 @@ def process_tree(
     for row in rows[:limit]:
         table.add_row(str(row.entry.pid), "  " * min(row.depth, 20) + row.entry.name)
     console.print(table)
+
+
+@app.command()
+def report(
+    format: Annotated[
+        ReportFormat, typer.Option(help="Export format.")
+    ] = ReportFormat.MARKDOWN,
+    output: Annotated[
+        Path | None,
+        typer.Option(help="Destination file; defaults to user data reports directory."),
+    ] = None,
+) -> None:
+    """Export one local observed snapshot as a static file."""
+    snapshot = _sample()
+    try:
+        destination = write_report(build_report(snapshot), format, output)
+    except (OSError, ValueError) as error:
+        typer.echo(f"Report could not be written: {error}", err=True)
+        raise typer.Exit(code=1) from error
+    console.print(f"Export completed: {destination}")
 
 
 def main() -> None:

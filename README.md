@@ -71,6 +71,8 @@ configuration or elevated permissions are needed for the default experience.
   evidence before triggering. Dismissed and resolved alerts remain visible.
 - **Process tree:** an on-demand parent/child scan, separate from the faster
   periodic process table.
+- **Reports:** export a single observed snapshot as JSON, CSV, Markdown, or a
+  static HTML file.
 
 GPU readings use installed `nvidia-smi`, `rocm-smi`, or `xpu-smi` tools. Without a
 supported source, SystemPulse marks GPU metrics unavailable. AMD and Intel
@@ -88,6 +90,7 @@ systempulse processes --search python
 systempulse history --range 1h
 systempulse alerts
 systempulse tree --limit 100
+systempulse report --format json
 systempulse doctor
 systempulse version
 ```
@@ -104,6 +107,7 @@ collectors, GPU provider, and terminal. The other commands exit after printing.
 | `1` / `2` / `3` / `4` / `5` / `6` | Overview / Processes / System / History / Alerts / Tree |
 | `h` | Cycle the History range |
 | `d` | Dismiss a selected active alert |
+| `e` | Export the current snapshot as Markdown |
 | `Enter` in Tree | Open the selected process details |
 | `/` | Search processes |
 | `c` / `m` / `p` | Sort processes by CPU / memory / PID |
@@ -126,6 +130,7 @@ their interactive validation is pending. CI is configured to run tests, package
 builds, and isolated tool-install checks on all three platforms. See
 [alerts and configuration](docs/en/alerts.md), [history storage](docs/en/history.md) and
 [release checks](docs/en/release.md).
+See [reports](docs/en/reports.md) for export formats and locations.
 
 Typed collectors feed application state, then Textual and the CLI. Collection
 runs outside the UI loop. SystemPulse keeps metrics on the machine and does not

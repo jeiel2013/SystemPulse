@@ -30,6 +30,7 @@ from systempulse.presentation import (
     format_temperature,
     format_uptime,
 )
+from systempulse.reports.export import ReportFormat, build_report, write_report
 from systempulse.services.monitor import MonitorSession, create_default_session
 from systempulse.services.process_details import ProcessDetailsService
 from systempulse.services.process_query import (
@@ -81,6 +82,7 @@ class PulseApp(App[None]):
         ("6", "tree", "Tree"),
         ("h", "history_range", "Range"),
         ("d", "dismiss_alert", "Dismiss"),
+        ("e", "export_report", "Export"),
         ("t", "toggle_theme", "Theme"),
     ]
 
@@ -306,6 +308,21 @@ class PulseApp(App[None]):
                 await self.session.dismiss_alert(alert.rule_id)
                 self._render_alerts()
                 self.notify("Alert dismissed", timeout=2)
+
+    async def action_export_report(self) -> None:
+        """Write a local Markdown report of the latest observed snapshot."""
+        snapshot = self.session.state.current_snapshot
+        if snapshot is None:
+            self.notify("Waiting for the first sample", timeout=3)
+            return
+        try:
+            destination = await asyncio.to_thread(
+                write_report, build_report(snapshot), ReportFormat.MARKDOWN
+            )
+        except (OSError, ValueError) as error:
+            self.notify(f"Report failed: {type(error).__name__}", severity="error")
+            return
+        self.notify(f"Export completed: {destination}", timeout=5)
 
     def action_history_range(self) -> None:
         """Cycle through supported history windows in the history view."""

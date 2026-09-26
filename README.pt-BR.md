@@ -75,6 +75,8 @@ A experiência padrão dispensa configuração e permissões elevadas.
   antes de disparar. Alertas dispensados e resolvidos continuam visíveis.
 - **Process tree:** varredura sob demanda das relações entre processos pais e
   filhos, separada da tabela periódica mais leve.
+- **Reports:** exportação de um snapshot observado em JSON, CSV, Markdown ou
+  arquivo HTML estático.
 
 As métricas de GPU usam as ferramentas instaladas `nvidia-smi`, `rocm-smi` ou
 `xpu-smi`. Sem uma fonte compatível, o SystemPulse marca a GPU como
@@ -93,6 +95,7 @@ systempulse processes --search python
 systempulse history --range 1h
 systempulse alerts
 systempulse tree --limit 100
+systempulse report --format json
 systempulse doctor
 systempulse version
 ```
@@ -110,6 +113,7 @@ encerram após mostrar o resultado.
 | `1` / `2` / `3` / `4` / `5` / `6` | Overview / Processes / System / History / Alerts / Tree |
 | `h` | Alternar o período do histórico |
 | `d` | Dispensar o alerta ativo selecionado |
+| `e` | Exportar o snapshot atual em Markdown |
 | `Enter` em Tree | Abrir detalhes do processo selecionado |
 | `/` | Buscar processos |
 | `c` / `m` / `p` | Ordenar por CPU / memória / PID |
@@ -133,6 +137,7 @@ executar testes, builds e verificações de instalação isolada nos três siste
 Veja [alertas e configuração](docs/pt-BR/alerts.md), o
 [armazenamento do histórico](docs/pt-BR/history.md) e as
 [verificações de release](docs/pt-BR/release.md).
+Consulte [relatórios](docs/pt-BR/reports.md) para formatos e localização.
 
 Collectors tipados alimentam o estado da aplicação, que abastece Textual e a
 CLI. A coleta executa fora do loop da interface. As métricas permanecem na
