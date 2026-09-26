@@ -91,6 +91,7 @@ systempulse history --range 1h
 systempulse alerts
 systempulse tree --limit 100
 systempulse report --format json
+systempulse plugins
 systempulse doctor
 systempulse version
 ```
@@ -131,6 +132,7 @@ builds, and isolated tool-install checks on all three platforms. See
 [alerts and configuration](docs/en/alerts.md), [history storage](docs/en/history.md) and
 [release checks](docs/en/release.md).
 See [reports](docs/en/reports.md) for export formats and locations.
+Collector plugins are opt-in; see [plugin development](docs/en/plugins.md).
 
 Typed collectors feed application state, then Textual and the CLI. Collection
 runs outside the UI loop. SystemPulse keeps metrics on the machine and does not

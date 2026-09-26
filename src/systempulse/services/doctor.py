@@ -166,5 +166,13 @@ def run_doctor(*, interactive_terminal: bool, color_system: str | None) -> Docto
                 CheckState.WARN if session.history_error else CheckState.PASS,
                 f"{history_database_path()} ({session.history_error or 'accessible'})",
             ),
+            *(
+                DoctorCheck(
+                    f"Plugin {plugin.name}",
+                    CheckState.PASS if plugin.loaded else CheckState.WARN,
+                    plugin.detail,
+                )
+                for plugin in session.plugin_results
+            ),
         ),
     )

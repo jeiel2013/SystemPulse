@@ -13,12 +13,14 @@ from rich.table import Table
 from rich.text import Text
 
 from systempulse.cli_top import run_top
+from systempulse.config.settings import load_settings
 from systempulse.domain.analysis import AlertState
 from systempulse.domain.availability import Availability
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.history.ranges import HistoryRange
 from systempulse.history.store import HistoryStore
 from systempulse.platform.paths import history_database_path
+from systempulse.plugins.loader import discover_plugins
 from systempulse.presentation import (
     format_bytes,
     format_percent,
@@ -379,6 +381,27 @@ def report(
         typer.echo(f"Report could not be written: {error}", err=True)
         raise typer.Exit(code=1) from error
     console.print(f"Export completed: {destination}")
+
+
+@app.command()
+def plugins() -> None:
+    """List installed collector entry points without executing them."""
+    installed = discover_plugins()
+    enabled = set(load_settings().settings.enabled_plugins)
+    if not installed:
+        console.print("No collector plugins installed.")
+        return
+    table = Table(title="Collector plugins", box=box.SIMPLE)
+    table.add_column("Name")
+    table.add_column("State")
+    table.add_column("Entry point")
+    for entry in installed:
+        table.add_row(
+            entry.name,
+            "enabled" if entry.name in enabled else "disabled",
+            entry.value,
+        )
+    console.print(table)
 
 
 def main() -> None:

@@ -521,6 +521,16 @@ class PulseApp(App[None]):
                 for status in waiting_or_unavailable
             )
         )
+        if isinstance(self.session, MonitorSession):
+            failures = tuple(
+                result.name
+                for result in self.session.plugin_results
+                if not result.loaded
+            )
+            if failures:
+                status_text += " · Plugins unavailable: " + ", ".join(failures)
+            if self.session.history_error:
+                status_text += f" · History {self.session.history_error}"
         self.query_one("#collector-line", Static).update(status_text)
         self._render_system(snapshot)
         self._render_analysis(snapshot)

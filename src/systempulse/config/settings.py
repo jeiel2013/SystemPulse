@@ -57,6 +57,7 @@ class AppSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     rules: tuple[RuleSettings, ...] = Field(default_factory=_default_rules)
+    enabled_plugins: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def unique_rule_ids(self) -> "AppSettings":

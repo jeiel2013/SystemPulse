@@ -20,6 +20,7 @@ from systempulse.domain.analysis import Alert
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.history.store import HistoryStore
 from systempulse.platform.paths import history_database_path
+from systempulse.plugins.loader import PluginResult, register_plugins
 from systempulse.rules.engine import RuleEngine
 from systempulse.services.aggregator import MetricAggregator
 from systempulse.services.metrics import MetricService
@@ -35,6 +36,7 @@ class MonitorSession:
         history_store: HistoryStore | None = None,
         rule_engine: RuleEngine | None = None,
         config_error: str | None = None,
+        plugin_results: tuple[PluginResult, ...] = (),
     ) -> None:
         self.registry = registry
         self.state = ApplicationState()
@@ -44,6 +46,7 @@ class MonitorSession:
         self.history_error: str | None = None
         self.rule_engine = rule_engine
         self.config_error = config_error
+        self.plugin_results = plugin_results
 
     async def _publish(
         self, results: tuple[CollectionResult[object], ...]
@@ -119,9 +122,11 @@ def create_default_session() -> MonitorSession:
     registry.register(BatteryCollector())
     registry.register(SensorCollector())
     loaded = load_settings()
+    plugin_results = register_plugins(registry, loaded.settings.enabled_plugins)
     return MonitorSession(
         registry,
         HistoryStore(history_database_path()),
         RuleEngine(loaded.settings.enabled_rules()),
         loaded.error,
+        plugin_results,
     )

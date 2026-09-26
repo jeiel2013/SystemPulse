@@ -96,6 +96,7 @@ systempulse history --range 1h
 systempulse alerts
 systempulse tree --limit 100
 systempulse report --format json
+systempulse plugins
 systempulse doctor
 systempulse version
 ```
@@ -138,6 +139,8 @@ Veja [alertas e configuração](docs/pt-BR/alerts.md), o
 [armazenamento do histórico](docs/pt-BR/history.md) e as
 [verificações de release](docs/pt-BR/release.md).
 Consulte [relatórios](docs/pt-BR/reports.md) para formatos e localização.
+Plugins de coleta exigem ativação explícita; consulte
+[desenvolvimento de plugins](docs/pt-BR/plugins.md).
 
 Collectors tipados alimentam o estado da aplicação, que abastece Textual e a
 CLI. A coleta executa fora do loop da interface. As métricas permanecem na
