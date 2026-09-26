@@ -22,7 +22,9 @@ def test_rule_requires_full_duration_and_resolves_when_condition_ends() -> None:
     assert len(result.new_alerts) == 1
     assert "97.0%" in result.new_alerts[0].message
     assert "above 90%" in result.observations[0].message
-    assert engine.evaluate(snapshot(start + timedelta(seconds=3), 98)).new_alerts == ()
+    repeated = engine.evaluate(snapshot(start + timedelta(seconds=3), 98))
+    assert repeated.new_alerts == ()
+    assert repeated.observations == ()
     ended = engine.evaluate(snapshot(start + timedelta(seconds=4), 50)).ended_alerts
     assert ended[0].state == AlertState.RESOLVED
 

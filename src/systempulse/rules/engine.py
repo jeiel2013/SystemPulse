@@ -61,10 +61,10 @@ class RuleEngine:
                     f"{rule.metric.value} stayed above {rule.threshold_percent:g}% "
                     f"for {int(duration)}s (latest {value:.1f}%)."
                 )
-                observations.append(
-                    Observation(sampled_at, rule.metric, value, message)
-                )
                 if rule.id not in self._active:
+                    observations.append(
+                        Observation(sampled_at, rule.metric, value, message)
+                    )
                     alert = Alert(rule.id, sampled_at, rule.severity, message)
                     self._active[rule.id] = alert
                     new.append(alert)
