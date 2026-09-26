@@ -30,6 +30,14 @@ def format_temperature(value: float | None) -> str:
     return "Unavailable" if value is None else f"{value:.0f} C"
 
 
+def format_remaining_time(seconds: int | None) -> str:
+    """Display battery time only when the platform reported an estimate."""
+    if seconds is None:
+        return "Unavailable"
+    hours, remainder = divmod(seconds, 3600)
+    return f"{hours}h {remainder // 60}m"
+
+
 def format_uptime(boot_time: datetime | None, observed_at: datetime) -> str:
     """Express elapsed host time without guessing when boot time is unavailable."""
     if boot_time is None:

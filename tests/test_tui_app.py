@@ -14,6 +14,7 @@ from textual.widgets import DataTable, Input, Static
 from systempulse.domain.analysis import Alert, Severity
 from systempulse.domain.availability import Availability, CollectorStatus
 from systempulse.domain.gpu import GpuMetrics, GpuSnapshot
+from systempulse.domain.hardware import BatteryMetrics, SensorMetrics, SensorReading
 from systempulse.domain.io import DiskMetrics, NetworkMetrics
 from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import (
@@ -348,6 +349,23 @@ async def test_gpu_unavailable_is_explicit_in_both_views() -> None:
         assert "Unavailable" in str(app.query_one("#gpu-card", Static).render())
         await pilot.press("3")
         assert "nvidia-smi" in str(app.query_one("#gpu-facts", Static).render())
+
+
+@pytest.mark.asyncio
+async def test_system_view_shows_optional_battery_and_sensors() -> None:
+    snapshot = _snapshot()
+    at = snapshot.created_at
+    snapshot = replace(
+        snapshot,
+        battery=BatteryMetrics(at, 72.0, False, 3600),
+        sensors=SensorMetrics(at, (SensorReading("cpu", "Package", 53.0, "C"),)),
+    )
+    app = PulseApp(session=FakeSession(snapshot))
+    async with app.run_test(size=(90, 26)) as pilot:
+        await pilot.pause()
+        await pilot.press("3")
+        assert "72.0%" in str(app.query_one("#battery-facts", Static).render())
+        assert "53 C" in str(app.query_one("#sensor-facts", Static).render())
 
 
 @pytest.mark.asyncio

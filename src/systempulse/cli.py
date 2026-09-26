@@ -22,6 +22,7 @@ from systempulse.presentation import (
     format_bytes,
     format_percent,
     format_rate,
+    format_remaining_time,
     format_temperature,
     format_uptime,
 )
@@ -97,6 +98,16 @@ def status() -> None:
         "Network upload",
         format_rate(network.upload_bytes_per_second if network else None),
     )
+    battery = snapshot.battery
+    if battery is not None:
+        power = "Plugged in" if battery.power_plugged else "On battery"
+        table.add_row(
+            "Battery",
+            f"{format_percent(battery.percent)} · {power} · "
+            f"{format_remaining_time(battery.seconds_left)} remaining",
+        )
+    elif any(status.name == "battery" for status in snapshot.collector_statuses):
+        table.add_row("Battery", "Unavailable")
     system = snapshot.system
     table.add_row(
         "System",

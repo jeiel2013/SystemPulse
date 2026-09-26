@@ -65,8 +65,9 @@ A experiência padrão dispensa configuração e permissões elevadas.
   rede precisam de duas amostras.
 - **Processes:** busca, ordenação por CPU, memória ou PID e detalhes verificados
   do processo selecionado. Campos protegidos aparecem como indisponíveis.
-- **System:** sistema operacional, uptime, informações de CPU e memória e todas
-  as GPUs informadas pelo provider ativo.
+- **System:** sistema operacional, uptime, informações de CPU e memória, todas
+  as GPUs informadas pelo provider ativo e leituras de bateria/sensores quando
+  disponíveis.
 - **History:** tendências locais de CPU, memória, disco e rede em períodos de
   10 minutos a 30 dias. O banco guarda resumos de métricas, sem nomes de
   processos ou comandos.
@@ -75,7 +76,9 @@ A experiência padrão dispensa configuração e permissões elevadas.
 
 As métricas de GPU exigem atualmente o `nvidia-smi` da NVIDIA. Sem ele, o
 SystemPulse continua funcionando e marca a GPU como indisponível. Providers AMD
-e Intel ainda não foram implementados. Veja a [coleta de GPU](docs/pt-BR/gpu.md).
+e Intel ainda não foram implementados. A disponibilidade de bateria e sensores
+depende do host. Veja a [coleta de GPU](docs/pt-BR/gpu.md) e as
+[fontes de hardware](docs/pt-BR/hardware.md).
 
 ## Outros comandos
 

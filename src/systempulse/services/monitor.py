@@ -5,6 +5,7 @@ import asyncio
 from sqlalchemy.exc import SQLAlchemyError
 
 from systempulse.collectors.base import CollectionResult
+from systempulse.collectors.battery import BatteryCollector
 from systempulse.collectors.cpu import CpuCollector
 from systempulse.collectors.disk import DiskCollector
 from systempulse.collectors.gpu.collector import GpuCollector
@@ -12,6 +13,7 @@ from systempulse.collectors.memory import MemoryCollector
 from systempulse.collectors.network import NetworkCollector
 from systempulse.collectors.processes import ProcessCollector
 from systempulse.collectors.registry import CollectorRegistry
+from systempulse.collectors.sensors import SensorCollector
 from systempulse.collectors.system import SystemCollector
 from systempulse.config.settings import load_settings
 from systempulse.domain.analysis import Alert
@@ -114,6 +116,8 @@ def create_default_session() -> MonitorSession:
     registry.register(ProcessCollector())
     registry.register(SystemCollector())
     registry.register(GpuCollector())
+    registry.register(BatteryCollector())
+    registry.register(SensorCollector())
     loaded = load_settings()
     return MonitorSession(
         registry,

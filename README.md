@@ -63,8 +63,8 @@ configuration or elevated permissions are needed for the default experience.
   and Top RAM process lists. Disk and network rates need two samples.
 - **Processes:** search, sort by CPU, memory, or PID, and open verified process
   details. Restricted fields appear as unavailable.
-- **System:** operating system, uptime, CPU and memory information, and every
-  GPU reported by the active provider.
+- **System:** operating system, uptime, CPU and memory information, every GPU
+  reported by the active provider, and battery/sensor readings when available.
 - **History:** local CPU, memory, disk, and network trends for 10 minutes through
   30 days. The database stores metric summaries, not process names or commands.
 - **Alerts:** local CPU, memory, and disk threshold rules require continuous
@@ -72,7 +72,8 @@ configuration or elevated permissions are needed for the default experience.
 
 GPU readings currently require NVIDIA's `nvidia-smi`. Without it, SystemPulse
 continues running and marks GPU metrics unavailable. AMD and Intel providers
-are not implemented yet. See [GPU collection](docs/en/gpu.md).
+are not implemented yet. Battery and sensor availability depends on the host.
+See [GPU collection](docs/en/gpu.md) and [hardware sources](docs/en/hardware.md).
 
 ## Other commands
 

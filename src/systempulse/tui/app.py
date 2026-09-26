@@ -23,6 +23,7 @@ from systempulse.presentation import (
     format_bytes,
     format_percent,
     format_rate,
+    format_remaining_time,
     format_temperature,
     format_uptime,
 )
@@ -135,6 +136,8 @@ class PulseApp(App[None]):
             yield Static("Waiting for system facts", id="host-facts")
             yield Static("Waiting for hardware metrics", id="hardware-facts")
             yield Static("Checking GPU provider", id="gpu-facts")
+            yield Static("Checking battery", id="battery-facts")
+            yield Static("Checking sensors", id="sensor-facts")
         with VerticalScroll(id="history-view"):
             yield Static("HISTORY · LOCAL METRICS", id="history-heading")
             yield Static("Loading local history", id="history-chart")
@@ -521,6 +524,27 @@ class PulseApp(App[None]):
         )
         self.query_one("#hardware-facts", Static).update(hardware)
         self._render_gpu(snapshot)
+        battery = snapshot.battery
+        if battery is None:
+            self.query_one("#battery-facts", Static).update("Battery unavailable.")
+        else:
+            power = "Plugged in" if battery.power_plugged else "On battery"
+            self.query_one("#battery-facts", Static).update(
+                f"BATTERY\n{format_percent(battery.percent)} · {power}\n"
+                f"Remaining {format_remaining_time(battery.seconds_left)}"
+            )
+        sensors = snapshot.sensors
+        if sensors is None:
+            self.query_one("#sensor-facts", Static).update(
+                "Sensor readings unavailable."
+            )
+        else:
+            readings = ["SENSORS"]
+            readings.extend(
+                f"{item.group} · {item.label}: {item.value:.0f} {item.unit}"
+                for item in sensors.readings[:20]
+            )
+            self.query_one("#sensor-facts", Static).update("\n".join(readings))
 
     def _render_gpu(self, snapshot: SystemSnapshot) -> None:
         """Show each measured GPU or the actual provider state."""
