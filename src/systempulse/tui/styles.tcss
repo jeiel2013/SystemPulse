@@ -25,9 +25,13 @@ Footer {
     text-style: bold;
 }
 
-#summary {
+#summary, #io-summary {
     layout: horizontal;
     width: 100%;
+    height: 8;
+}
+
+#io-summary {
     height: 8;
 }
 
@@ -79,6 +83,11 @@ Footer {
     height: 18;
 }
 
+.compact #io-summary {
+    layout: vertical;
+    height: 12;
+}
+
 .compact .metric-card {
     width: 100%;
     height: 6;
@@ -95,6 +104,10 @@ Footer {
 }
 
 .short #summary {
+    height: 6;
+}
+
+.short #io-summary {
     height: 6;
 }
 
@@ -125,6 +138,10 @@ Footer {
 
 .compact.short #summary {
     height: 18;
+}
+
+.compact.short #io-summary {
+    height: 12;
 }
 
 #process-explorer {

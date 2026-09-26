@@ -58,8 +58,9 @@ configuration or elevated permissions are needed for the default experience.
 
 ## What you can see
 
-- **Overview:** live CPU and RAM, a recent CPU chart, optional GPU load/VRAM/
-  temperature, and separate Top CPU and Top RAM process lists.
+- **Overview:** live CPU and RAM, home-volume disk usage, network transfer rates,
+  a recent CPU chart, optional GPU load/VRAM/temperature, and separate Top CPU
+  and Top RAM process lists. Disk and network rates need two samples.
 - **Processes:** search, sort by CPU, memory, or PID, and open verified process
   details. Restricted fields appear as unavailable.
 - **System:** operating system, uptime, CPU and memory information, and every
@@ -108,8 +109,8 @@ supports truecolor but reports fewer colors, run
 
 The TUI and CLI have been run on Windows. Linux and macOS are target platforms;
 their interactive validation is pending. CI is configured to run tests, package
-builds, and isolated tool-install checks on all three platforms. Disk, network,
-history, and alerts are not implemented yet. See [release checks](docs/en/release.md).
+builds, and isolated tool-install checks on all three platforms. Persistent
+history and alerts are not implemented yet. See [release checks](docs/en/release.md).
 
 Typed collectors feed application state, then Textual and the CLI. Collection
 runs outside the UI loop. SystemPulse keeps metrics on the machine and does not

@@ -59,8 +59,10 @@ A experiência padrão dispensa configuração e permissões elevadas.
 
 ## O que é exibido
 
-- **Overview:** CPU e RAM em tempo real, gráfico recente de CPU, carga/VRAM/
-  temperatura opcionais da GPU e listas separadas de Top CPU e Top RAM.
+- **Overview:** CPU e RAM em tempo real, uso do disco que contém a pasta pessoal,
+  taxas de transferência da rede, gráfico recente de CPU, carga/VRAM/temperatura
+  opcionais da GPU e listas separadas de Top CPU e Top RAM. As taxas de disco e
+  rede precisam de duas amostras.
 - **Processes:** busca, ordenação por CPU, memória ou PID e detalhes verificados
   do processo selecionado. Campos protegidos aparecem como indisponíveis.
 - **System:** sistema operacional, uptime, informações de CPU e memória e todas
@@ -111,7 +113,7 @@ truecolor, mas informa menos cores, execute
 A TUI e a CLI foram executadas no Windows. Linux e macOS são plataformas alvo;
 a validação interativa nelas ainda está pendente. O CI foi configurado para
 executar testes, builds e verificações de instalação isolada nos três sistemas.
-Disco, rede, histórico e alertas ainda não foram implementados. Veja as
+Histórico persistente e alertas ainda não foram implementados. Veja as
 [verificações de release](docs/pt-BR/release.md).
 
 Collectors tipados alimentam o estado da aplicação, que abastece Textual e a

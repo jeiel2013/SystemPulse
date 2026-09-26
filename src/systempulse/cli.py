@@ -17,6 +17,7 @@ from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.presentation import (
     format_bytes,
     format_percent,
+    format_rate,
     format_temperature,
     format_uptime,
 )
@@ -76,6 +77,21 @@ def status() -> None:
     table.add_row("Memory", format_percent(memory.percent if memory else None))
     table.add_row(
         "Available memory", format_bytes(memory.available_bytes if memory else None)
+    )
+    disk = snapshot.metrics.disk
+    network = snapshot.metrics.network
+    table.add_row("Home disk", format_percent(disk.percent if disk else None))
+    if disk is not None:
+        table.add_row("Disk free", format_bytes(disk.free_bytes))
+        table.add_row("Disk read", format_rate(disk.read_bytes_per_second))
+        table.add_row("Disk write", format_rate(disk.write_bytes_per_second))
+    table.add_row(
+        "Network download",
+        format_rate(network.download_bytes_per_second if network else None),
+    )
+    table.add_row(
+        "Network upload",
+        format_rate(network.upload_bytes_per_second if network else None),
     )
     system = snapshot.system
     table.add_row(

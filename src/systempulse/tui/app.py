@@ -18,6 +18,7 @@ from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.presentation import (
     format_bytes,
     format_percent,
+    format_rate,
     format_temperature,
     format_uptime,
 )
@@ -86,6 +87,17 @@ class PulseApp(App[None]):
                 )
                 yield Static(
                     "GPU\nChecking provider", id="gpu-card", classes="metric-card"
+                )
+            with Container(id="io-summary"):
+                yield Static(
+                    "HOME DISK\nWaiting for sample",
+                    id="disk-card",
+                    classes="metric-card",
+                )
+                yield Static(
+                    "NETWORK\nWaiting for sample",
+                    id="network-card",
+                    classes="metric-card",
                 )
             yield Static("CPU ACTIVITY\nWaiting for samples", id="cpu-history")
             yield Static("TOP CPU PROCESSES", id="process-heading")
@@ -163,7 +175,8 @@ class PulseApp(App[None]):
                 snapshot = await self.session.sample()
             else:
                 snapshot = await self.session.sample_due()
-            self._render_snapshot(snapshot)
+            if not isinstance(self.screen, ProcessDetailsScreen):
+                self._render_snapshot(snapshot)
             remaining = max(0.0, 1.0 - (monotonic() - started_at))
             with suppress(TimeoutError):
                 await asyncio.wait_for(
@@ -184,6 +197,33 @@ class PulseApp(App[None]):
         self.query_one("#memory-card", Static).update(
             f"MEMORY\n{format_percent(memory.percent if memory else None)}"
             + (f"\n{format_bytes(memory.available_bytes)} available" if memory else "")
+        )
+        disk = snapshot.metrics.disk
+        network = snapshot.metrics.network
+        self.query_one("#disk-card", Static).update(
+            "HOME DISK\n"
+            + (
+                f"{format_percent(disk.percent)} used · "
+                f"{format_bytes(disk.free_bytes)} free"
+                if disk
+                else "Unavailable"
+            )
+            + (
+                f"\nRead {format_rate(disk.read_bytes_per_second)} · "
+                f"Write {format_rate(disk.write_bytes_per_second)}"
+                if disk
+                else ""
+            )
+        )
+        self.query_one("#network-card", Static).update(
+            "NETWORK\n"
+            + (
+                f"↓ {format_rate(network.download_bytes_per_second)} · "
+                f"↑ {format_rate(network.upload_bytes_per_second)}"
+                if network
+                else "Unavailable"
+            )
+            + (f"\n{len(network.interfaces)} interfaces" if network else "")
         )
         gpu = snapshot.gpu.devices[0] if snapshot.gpu is not None else None
         if gpu is None:

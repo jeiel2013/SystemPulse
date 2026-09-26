@@ -13,6 +13,7 @@ from textual.widgets import DataTable, Input, Static
 
 from systempulse.domain.availability import Availability, CollectorStatus
 from systempulse.domain.gpu import GpuMetrics, GpuSnapshot
+from systempulse.domain.io import DiskMetrics, NetworkMetrics
 from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import (
     ProcessDetails,
@@ -65,7 +66,17 @@ def _snapshot(*, available: bool = True) -> SystemSnapshot:
         else None
     )
     return SystemSnapshot(
-        at, MetricSnapshot(at, cpu, memory), processes, system, statuses
+        at,
+        MetricSnapshot(
+            at,
+            cpu,
+            memory,
+            DiskMetrics(at, "/", 1000, 400, 600, 40.0, 100, 200, 50.0, 20.0),
+            NetworkMetrics(at, 1000, 2000, 100.0, 25.0, ()),
+        ),
+        processes,
+        system,
+        statuses,
     )
 
 
@@ -117,6 +128,8 @@ async def test_overview_renders_and_handles_refresh_resize_and_quit() -> None:
         await pilot.pause()
         assert app.query_one("#top-processes", DataTable).row_count == 1
         assert "42.0%" in str(app.query_one("#cpu-card", Static).render())
+        assert "40.0%" in str(app.query_one("#disk-card", Static).render())
+        assert "100 B/s" in str(app.query_one("#network-card", Static).render())
 
         await pilot.press("r")
         await pilot.pause()
@@ -124,7 +137,7 @@ async def test_overview_renders_and_handles_refresh_resize_and_quit() -> None:
 
         await pilot.resize_terminal(80, 25)
         assert app.has_class("short")
-        assert app.query_one("#top-processes", DataTable).region.y < 18
+        assert app.query_one("#top-processes", DataTable).region.y < 25
 
         await pilot.resize_terminal(50, 20)
         assert app.has_class("compact")

@@ -20,6 +20,11 @@ def format_percent(value: float | None) -> str:
     return "Unavailable" if value is None else f"{value:.1f}%"
 
 
+def format_rate(value: float | None) -> str:
+    """Format an observed byte-per-second rate without guessing a baseline."""
+    return "Unavailable" if value is None else f"{format_bytes(round(value))}/s"
+
+
 def format_temperature(value: float | None) -> str:
     """Show observed temperatures without manufacturing missing readings."""
     return "Unavailable" if value is None else f"{value:.0f} C"

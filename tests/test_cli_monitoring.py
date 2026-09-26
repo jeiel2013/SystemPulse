@@ -12,6 +12,7 @@ from systempulse.cli import app
 from systempulse.cli_top import render_top
 from systempulse.domain.availability import Availability, CollectorStatus
 from systempulse.domain.gpu import GpuMetrics, GpuSnapshot
+from systempulse.domain.io import DiskMetrics, NetworkMetrics
 from systempulse.domain.metrics import CpuMetrics, MemoryMetrics, SystemMetrics
 from systempulse.domain.processes import ProcessMetrics, ProcessSnapshot
 from systempulse.domain.snapshots import MetricSnapshot, SystemSnapshot
@@ -52,7 +53,13 @@ def observed_snapshot(monkeypatch: pytest.MonkeyPatch) -> SystemSnapshot:
     )
     snapshot = SystemSnapshot(
         at,
-        MetricSnapshot(at, cpu, memory),
+        MetricSnapshot(
+            at,
+            cpu,
+            memory,
+            DiskMetrics(at, "/", 1000, 400, 600, 40.0, 100, 200, 50.0, 20.0),
+            NetworkMetrics(at, 1000, 2000, 100.0, 25.0, ()),
+        ),
         processes,
         SystemMetrics(at, "Test OS", "1.0", "test64", "host", at),
         statuses,
@@ -85,6 +92,10 @@ def test_status_shows_measured_values_and_distinct_process_leaders(
     assert "38.0%" in result.stdout
     assert "2.0 GiB / 6.0 GiB" in result.stdout
     assert "51 C" in result.stdout
+    assert "Home disk" in result.stdout
+    assert "40.0%" in result.stdout
+    assert "Network download" in result.stdout
+    assert "100 B/s" in result.stdout
 
 
 def test_processes_sort_filter_and_limit(observed_snapshot: SystemSnapshot) -> None:
