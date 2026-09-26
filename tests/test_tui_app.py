@@ -24,6 +24,7 @@ from systempulse.domain.processes import (
     ProcessSnapshot,
 )
 from systempulse.domain.snapshots import MetricSnapshot, SystemSnapshot
+from systempulse.services.process_tree import ProcessTreeEntry, ProcessTreeRow
 from systempulse.services.state import ApplicationState
 from systempulse.tui.app import PulseApp, cpu_sparkline
 from systempulse.tui.process_details import ProcessDetailsScreen
@@ -119,6 +120,12 @@ class FakeDetailsService:
 class MissingDetailsService:
     async def read(self, identity: ProcessIdentity) -> None:
         return None
+
+
+class FakeTreeService:
+    async def read(self) -> tuple[ProcessTreeRow, ...]:
+        at = datetime.now(UTC)
+        return (ProcessTreeRow(ProcessTreeEntry(42, "worker", None, at), 0),)
 
 
 @pytest.mark.asyncio
@@ -419,6 +426,24 @@ async def test_alert_view_shows_observed_alert_and_analysis() -> None:
         assert app.query_one("#alert-table", DataTable).row_count == 1
         await pilot.press("1")
         assert not app.has_class("show-alerts")
+
+
+@pytest.mark.asyncio
+async def test_tree_view_loads_on_demand_and_opens_details() -> None:
+    app = PulseApp(
+        session=FakeSession(_snapshot()),
+        details_service=FakeDetailsService(),
+        tree_service=FakeTreeService(),
+    )
+    async with app.run_test(size=(80, 24)) as pilot:
+        await pilot.pause()
+        await pilot.press("6")
+        await pilot.pause()
+        assert app.has_class("show-tree")
+        assert app.query_one("#tree-table", DataTable).row_count == 1
+        await pilot.press("enter")
+        await pilot.pause()
+        assert isinstance(app.screen, ProcessDetailsScreen)
 
 
 @pytest.mark.asyncio

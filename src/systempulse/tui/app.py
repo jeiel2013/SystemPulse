@@ -2,9 +2,11 @@
 
 import asyncio
 from contextlib import suppress
+from datetime import UTC, datetime
 from time import monotonic
 from typing import ClassVar
 
+import psutil
 from rich.table import Table
 from rich.text import Text
 from sqlalchemy.exc import SQLAlchemyError
@@ -16,6 +18,7 @@ from textual.widgets import DataTable, Footer, Header, Static
 
 from systempulse.domain.analysis import Alert, AlertState
 from systempulse.domain.availability import Availability
+from systempulse.domain.processes import ProcessMetrics
 from systempulse.domain.snapshots import SystemSnapshot
 from systempulse.history.ranges import HistoryRange
 from systempulse.history.store import HistoryPoint
@@ -34,6 +37,7 @@ from systempulse.services.process_query import (
     ProcessSort,
     query_processes,
 )
+from systempulse.services.process_tree import ProcessTreeRow, ProcessTreeService
 from systempulse.tui.process_details import ProcessDetailsScreen
 from systempulse.tui.process_explorer import ProcessExplorer
 from systempulse.tui.themes import PULSE_DARK, PULSE_LIGHT, themes_for_color_system
@@ -74,6 +78,7 @@ class PulseApp(App[None]):
         ("3", "system", "System"),
         ("4", "history", "History"),
         ("5", "alerts", "Alerts"),
+        ("6", "tree", "Tree"),
         ("h", "history_range", "Range"),
         ("d", "dismiss_alert", "Dismiss"),
         ("t", "toggle_theme", "Theme"),
@@ -83,14 +88,17 @@ class PulseApp(App[None]):
         self,
         session: MonitorSession | None = None,
         details_service: ProcessDetailsService | None = None,
+        tree_service: ProcessTreeService | None = None,
     ) -> None:
         super().__init__()
         self.session = session or create_default_session()
         self.details_service = details_service or ProcessDetailsService()
+        self.tree_service = tree_service or ProcessTreeService()
         self._refresh_requested = asyncio.Event()
         self._history_range = HistoryRange.TEN_MINUTES
         self._history_last = 0.0
         self._visible_alerts: tuple[Alert, ...] = ()
+        self._tree_rows: tuple[ProcessTreeRow, ...] = ()
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -149,6 +157,10 @@ class PulseApp(App[None]):
                 "No alerts recorded. Press d to dismiss a selected active alert.",
                 id="alerts-hint",
             )
+        with VerticalScroll(id="tree-view"):
+            yield Static("PROCESS TREE · ON-DEMAND SCAN", id="tree-heading")
+            yield DataTable(id="tree-table", cursor_type="row", zebra_stripes=True)
+            yield Static("Enter opens details · r rescans", id="tree-hint")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -163,6 +175,7 @@ class PulseApp(App[None]):
         self.query_one("#alert-table", DataTable).add_columns(
             "WHEN", "STATE", "SEVERITY", "OBSERVATION"
         )
+        self.query_one("#tree-table", DataTable).add_columns("PID", "PROCESS")
         self.query_one("#body", VerticalScroll).focus()
         self._collect_loop()
 
@@ -178,6 +191,8 @@ class PulseApp(App[None]):
         """Request an immediate full collection cycle."""
         self._refresh_requested.set()
         self.query_one("#status-line", Static).update("LOCAL MONITORING  ·  Refreshing")
+        if self.has_class("show-tree"):
+            self._load_tree()
 
     def action_overview(self) -> None:
         """Return to the live system summary."""
@@ -185,6 +200,7 @@ class PulseApp(App[None]):
         self.remove_class("show-system")
         self.remove_class("show-history")
         self.remove_class("show-alerts")
+        self.remove_class("show-tree")
         self.query_one("#body", VerticalScroll).focus()
 
     def action_processes(self) -> None:
@@ -193,6 +209,7 @@ class PulseApp(App[None]):
         self.remove_class("show-system")
         self.remove_class("show-history")
         self.remove_class("show-alerts")
+        self.remove_class("show-tree")
         self.query_one(ProcessExplorer).focus_table()
 
     def action_system(self) -> None:
@@ -201,6 +218,7 @@ class PulseApp(App[None]):
         self.add_class("show-system")
         self.remove_class("show-history")
         self.remove_class("show-alerts")
+        self.remove_class("show-tree")
 
     def action_history(self) -> None:
         """Open the local metric timeline."""
@@ -208,6 +226,7 @@ class PulseApp(App[None]):
         self.remove_class("show-system")
         self.add_class("show-history")
         self.remove_class("show-alerts")
+        self.remove_class("show-tree")
         self.query_one("#history-view", VerticalScroll).focus()
         self._load_history()
 
@@ -217,7 +236,61 @@ class PulseApp(App[None]):
         self.remove_class("show-system")
         self.remove_class("show-history")
         self.add_class("show-alerts")
+        self.remove_class("show-tree")
         self.query_one("#alert-table", DataTable).focus()
+
+    def action_tree(self) -> None:
+        """Scan parent relationships only when this view is opened."""
+        self.remove_class("show-processes")
+        self.remove_class("show-system")
+        self.remove_class("show-history")
+        self.remove_class("show-alerts")
+        self.add_class("show-tree")
+        self.query_one("#tree-table", DataTable).focus()
+        self._load_tree()
+
+    @work(exclusive=True, group="process-tree")
+    async def _load_tree(self) -> None:
+        try:
+            rows = await self.tree_service.read()
+        except (OSError, psutil.Error) as error:
+            self.query_one("#tree-hint", Static).update(
+                f"Process tree unavailable ({type(error).__name__})."
+            )
+            return
+        if not self.has_class("show-tree"):
+            return
+        self._tree_rows = rows
+        table = self.query_one("#tree-table", DataTable)
+        table.clear()
+        for row in rows:
+            table.add_row(
+                str(row.entry.pid),
+                "  " * min(row.depth, 20) + row.entry.name,
+            )
+        self.query_one("#tree-hint", Static).update(
+            f"{len(rows)} processes · Enter details · r rescan"
+        )
+
+    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        if event.data_table.id != "tree-table":
+            return
+        if not 0 <= event.cursor_row < len(self._tree_rows):
+            return
+        entry = self._tree_rows[event.cursor_row].entry
+        process = ProcessMetrics(
+            sampled_at=datetime.now(UTC),
+            pid=entry.pid,
+            identity=entry.identity,
+            name=entry.name,
+            cpu_percent=None,
+            memory_rss_bytes=None,
+            status=None,
+            user=None,
+            threads=None,
+            parent_pid=entry.parent_pid,
+        )
+        self.push_screen(ProcessDetailsScreen(process, self.details_service))
 
     async def action_dismiss_alert(self) -> None:
         """Dismiss only a selected active alert, leaving its rule in place."""

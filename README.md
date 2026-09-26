@@ -69,6 +69,8 @@ configuration or elevated permissions are needed for the default experience.
   30 days. The database stores metric summaries, not process names or commands.
 - **Alerts:** local CPU, memory, and disk threshold rules require continuous
   evidence before triggering. Dismissed and resolved alerts remain visible.
+- **Process tree:** an on-demand parent/child scan, separate from the faster
+  periodic process table.
 
 GPU readings use installed `nvidia-smi`, `rocm-smi`, or `xpu-smi` tools. Without a
 supported source, SystemPulse marks GPU metrics unavailable. AMD and Intel
@@ -85,6 +87,7 @@ systempulse processes --sort memory --limit 10
 systempulse processes --search python
 systempulse history --range 1h
 systempulse alerts
+systempulse tree --limit 100
 systempulse doctor
 systempulse version
 ```
@@ -98,9 +101,10 @@ collectors, GPU provider, and terminal. The other commands exit after printing.
 
 | Key | Action |
 | --- | --- |
-| `1` / `2` / `3` / `4` / `5` | Overview / Processes / System / History / Alerts |
+| `1` / `2` / `3` / `4` / `5` / `6` | Overview / Processes / System / History / Alerts / Tree |
 | `h` | Cycle the History range |
 | `d` | Dismiss a selected active alert |
+| `Enter` in Tree | Open the selected process details |
 | `/` | Search processes |
 | `c` / `m` / `p` | Sort processes by CPU / memory / PID |
 | `Enter` | Return from search to the table, or open a selected process |

@@ -176,6 +176,10 @@ Footer {
     display: none;
 }
 
+.show-tree #body {
+    display: none;
+}
+
 .show-processes #process-explorer {
     display: block;
 }
@@ -211,6 +215,34 @@ Footer {
 
 .show-alerts #alerts-view {
     display: block;
+}
+
+#tree-view {
+    display: none;
+    width: 100%;
+    height: 1fr;
+    padding: 1 2;
+}
+
+.show-tree #tree-view {
+    display: block;
+}
+
+#tree-heading {
+    height: 2;
+    color: $text-primary;
+    text-style: bold;
+}
+
+#tree-table {
+    height: 1fr;
+    border: round $primary 45%;
+    background: $surface;
+}
+
+#tree-hint {
+    height: 2;
+    color: $text-muted;
 }
 
 #alerts-heading {

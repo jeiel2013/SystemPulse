@@ -73,6 +73,8 @@ A experiência padrão dispensa configuração e permissões elevadas.
   processos ou comandos.
 - **Alerts:** regras locais para CPU, memória e disco exigem evidência contínua
   antes de disparar. Alertas dispensados e resolvidos continuam visíveis.
+- **Process tree:** varredura sob demanda das relações entre processos pais e
+  filhos, separada da tabela periódica mais leve.
 
 As métricas de GPU usam as ferramentas instaladas `nvidia-smi`, `rocm-smi` ou
 `xpu-smi`. Sem uma fonte compatível, o SystemPulse marca a GPU como
@@ -90,6 +92,7 @@ systempulse processes --sort memory --limit 10
 systempulse processes --search python
 systempulse history --range 1h
 systempulse alerts
+systempulse tree --limit 100
 systempulse doctor
 systempulse version
 ```
@@ -104,9 +107,10 @@ encerram após mostrar o resultado.
 
 | Tecla | Ação |
 | --- | --- |
-| `1` / `2` / `3` / `4` / `5` | Overview / Processes / System / History / Alerts |
+| `1` / `2` / `3` / `4` / `5` / `6` | Overview / Processes / System / History / Alerts / Tree |
 | `h` | Alternar o período do histórico |
 | `d` | Dispensar o alerta ativo selecionado |
+| `Enter` em Tree | Abrir detalhes do processo selecionado |
 | `/` | Buscar processos |
 | `c` / `m` / `p` | Ordenar por CPU / memória / PID |
 | `Enter` | Voltar da busca para a tabela ou abrir o processo selecionado |

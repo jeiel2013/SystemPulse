@@ -33,6 +33,7 @@ from systempulse.services.process_query import (
     ProcessSort,
     query_processes,
 )
+from systempulse.services.process_tree import ProcessTreeService
 from systempulse.version import get_version
 
 app = typer.Typer(
@@ -341,6 +342,20 @@ def alerts(
             alert.severity.value,
             alert.message,
         )
+    console.print(table)
+
+
+@app.command("tree")
+def process_tree(
+    limit: Annotated[int, typer.Option(min=1, max=1000)] = 200,
+) -> None:
+    """Show an on-demand snapshot of process parent relationships."""
+    rows = asyncio.run(ProcessTreeService().read())
+    table = Table(title=f"Process tree ({min(len(rows), limit)} shown)", box=box.SIMPLE)
+    table.add_column("PID", justify="right")
+    table.add_column("Process", overflow="ellipsis")
+    for row in rows[:limit]:
+        table.add_row(str(row.entry.pid), "  " * min(row.depth, 20) + row.entry.name)
     console.print(table)
 
 
