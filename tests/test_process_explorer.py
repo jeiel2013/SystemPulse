@@ -69,6 +69,35 @@ async def test_search_sort_and_selection_with_keyboard() -> None:
 
 
 @pytest.mark.asyncio
+async def test_table_shows_only_fields_the_scan_actually_collects() -> None:
+    app = ExplorerApp()
+    process_with_details = _process(10, "worker", 50.0, 100)
+
+    async with app.run_test(size=(90, 24)) as pilot:
+        explorer = app.query_one(ProcessExplorer)
+        table = app.query_one(DataTable)
+        explorer.update_snapshot(
+            ProcessSnapshot(datetime.now(UTC), (process_with_details,))
+        )
+        await pilot.pause()
+
+        headers = [str(column.label) for column in table.columns.values()]
+        assert headers == ["PID", "PROCESS", "CPU", "MEMORY"]
+        # Username and threads are fetched on demand, never during the periodic
+        # scan, so the table must not render columns for them.
+        assert "USER" not in headers
+        assert "THREADS" not in headers
+        # Every rendered cell has a real measured value, not a placeholder.
+        row = table.get_row_at(0)
+        assert [str(cell) for cell in row] == [
+            "10",
+            "worker",
+            "50.0%",
+            "100 B",
+        ]
+
+
+@pytest.mark.asyncio
 async def test_refresh_keeps_selected_instance_when_order_changes() -> None:
     app = ExplorerApp()
     first = _process(10, "first", 50.0, 100)
