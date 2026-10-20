@@ -37,6 +37,9 @@ class ProcessExplorer(Widget):
         yield Static("PROCESSES  ·  SORT CPU", id="process-explorer-heading")
         yield Input(placeholder="Search process name", id="process-search")
         yield DataTable(id="process-table", cursor_type="row", zebra_stripes=True)
+        # Username and thread count are intentionally not scanned: they roughly
+        # double the cost of every periodic psutil pass. Open Enter to see them
+        # under ProcessDetailsScreen, where one on-demand lookup is acceptable.
         yield Static(
             "/ Search  ·  c CPU  ·  m Memory  ·  p PID  ·  Enter Details",
             id="process-explorer-hint",
@@ -44,7 +47,7 @@ class ProcessExplorer(Widget):
 
     def on_mount(self) -> None:
         self.query_one("#process-table", DataTable).add_columns(
-            "PID", "PROCESS", "CPU", "MEMORY", "USER", "THREADS"
+            "PID", "PROCESS", "CPU", "MEMORY"
         )
 
     def update_snapshot(self, snapshot: ProcessSnapshot | None) -> None:
@@ -126,8 +129,6 @@ class ProcessExplorer(Widget):
                 Text(process.name or "Unknown"),
                 format_percent(process.cpu_percent),
                 format_bytes(process.memory_rss_bytes),
-                Text(process.user or "Unavailable"),
-                str(process.threads) if process.threads is not None else "Unavailable",
                 key=key,
             )
         self._keys = tuple(keys)
