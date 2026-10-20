@@ -4,6 +4,14 @@
 
 Changes are grouped by release. SystemPulse follows Semantic Versioning.
 
+## Unreleased
+
+- Remove the always-empty `USER` and `THREADS` columns from the process
+  explorer. They were rendered without data because the periodic psutil scan
+  intentionally avoids expensive fields; `username` and `num_threads` roughly
+  double the cost of every scan on a typical host. Press Enter on a row to see
+  them via the on-demand process details screen.
+
 ## 0.1.0.dev1 — Documentation update
 
 - Document installation from PyPI using uv or pipx and running `systempulse`

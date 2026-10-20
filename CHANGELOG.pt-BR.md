@@ -4,6 +4,14 @@
 
 As mudanças são agrupadas por release. O SystemPulse segue Semantic Versioning.
 
+## Não publicado
+
+- Remover as colunas `USER` e `THREADS`, sempre vazias, do explorador de
+  processos. Elas eram renderizadas sem dados porque o scan periódico do
+  psutil evita deliberadamente campos custosos; `username` e `num_threads`
+  praticamente dobram o custo de cada scan em uma máquina típica. Pressione
+  Enter em uma linha para vê-los na tela de detalhes sob demanda.
+
 ## 0.1.0.dev1 — Atualização da documentação
 
 - Documentar a instalação pelo PyPI com uv ou pipx e a execução direta de
